@@ -15,6 +15,9 @@ class Courses {
   String? location; // Location for physical mode
   String? imageUrl;
   List<String>? objectives;
+  double? price;
+  int? duration; // in weeks
+  String? difficulty;
 
   Courses({
     this.id,
@@ -28,9 +31,12 @@ class Courses {
     this.startTime,
     this.endTime,
     this.mode,
-    this.location, // Location field
+    this.location,
     this.imageUrl,
     this.objectives,
+    this.price,
+    this.duration,
+    this.difficulty,
   });
 
   Courses.fromJson(Map<String, dynamic> json, {String? documentId}) {
@@ -50,6 +56,9 @@ class Courses {
     objectives = json['objectives'] != null 
         ? List<String>.from(json['objectives'])
         : null;
+    price = json['price'] != null ? json['price'].toDouble() : null;
+    duration = json['duration'];
+    difficulty = json['difficulty'];
   }
 
   Map<String, dynamic> toJson() {
@@ -67,6 +76,9 @@ class Courses {
     data['location'] = location; // Add location to JSON
     data['imageUrl'] = imageUrl;
     data['objectives'] = objectives;
+    data['price'] = price;
+    data['duration'] = duration;
+    data['difficulty'] = difficulty;
     return data;
   }
 }

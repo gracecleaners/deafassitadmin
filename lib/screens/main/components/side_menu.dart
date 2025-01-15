@@ -1,4 +1,3 @@
-import 'package:admin/screens/courses/course_main.dart';
 import 'package:admin/screens/deaf/deaf_screen.dart';
 import 'package:admin/screens/interpreter/interpreter_screen.dart';
 import 'package:admin/screens/main/main_screen.dart';
@@ -159,8 +158,8 @@ class ResourcesExpansionTile extends StatelessWidget {
       children: [
         ListTile(
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => CourseScreen()));
+            // Navigator.push(context,
+            //     MaterialPageRoute(builder: (context) => CourseScreen()));
           },
           leading: SvgPicture.asset(
             'assets/icons/menu_doc.svg',
