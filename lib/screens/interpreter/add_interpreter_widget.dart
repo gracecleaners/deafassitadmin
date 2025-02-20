@@ -6,9 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 // For generating unique codes
 import '../../../constants.dart';
 
-
-
-
 class AddInterpreterWidget extends StatefulWidget {
   const AddInterpreterWidget({Key? key}) : super(key: key);
 
@@ -19,45 +16,46 @@ class AddInterpreterWidget extends StatefulWidget {
 class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
   late Future<List<Interpreter>> _futureInterpreters;
   Future<void> signupUser(
-  BuildContext context,
-  String email,
-  String password,
-  String name,
-  String district,
-  String employer,
-  String contact,
-  String experience,
-  String role,
-) async {
-  try {
-    // Create the user in Firebase Authentication
-    UserCredential userCredential =
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    BuildContext context,
+    String email,
+    String password,
+    String name,
+    String district,
+    String employer,
+    String contact,
+    String experience,
+    String region, // New parameter
+  ) async {
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    // Add user details to Firestore
-    await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-      'name': name,
-      'email': email,
-      'district': district,
-      'currentEmployer': employer,
-      'contact': contact,
-      'yearsOfExperience': experience,
-      'role': role,
-    });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'name': name,
+        'email': email,
+        'district': district,
+        'currentEmployer': employer,
+        'contact': contact,
+        'yearsOfExperience': experience,
+        'role': 'interpreter',
+        'region': region, // New field
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sign up successful!')),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: ${e.toString()}')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign up successful!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
   }
-}
-
 
   @override
   void initState() {
@@ -69,9 +67,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     CollectionReference interpretersCollection =
         FirebaseFirestore.instance.collection('users');
 
-    // Fetch only interpreters with the role "interpreter"
     QuerySnapshot querySnapshot = await interpretersCollection
-        .where('role', isEqualTo: 'interpreter') // Filter by role
+        .where('role', isEqualTo: 'interpreter')
         .get();
 
     List<Interpreter> interpreters = querySnapshot.docs.map((doc) {
@@ -80,9 +77,11 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
         name: data['name'],
         email: data['email'],
         district: data['district'],
-        currentEmployer: data['current_employer'],
+        currentEmployer:
+            data['currentEmployer'], // Match the Firestore field name
         contact: data['contact'],
-        yearsOfExperience: data['years_of_experience'],
+        yearsOfExperience:
+            data['yearsOfExperience'], // Match the Firestore field name
         role: data['role'],
       );
     }).toList();
@@ -90,11 +89,13 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     return interpreters;
   }
 
+// Update the DataRow to properly display all fields
   DataRow recentFileDataRow(Interpreter interpreterInfo) {
     return DataRow(
       cells: [
         DataCell(Text(interpreterInfo.name ?? '')),
         DataCell(Text(interpreterInfo.email ?? '')),
+        DataCell(Text(interpreterInfo.region ?? '')), // Add region column
         DataCell(Text(interpreterInfo.district ?? '')),
         DataCell(Text(interpreterInfo.currentEmployer ?? '')),
         DataCell(Text(interpreterInfo.contact ?? '')),
@@ -162,6 +163,7 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                       columns: [
                         DataColumn(label: Text("Name")),
                         DataColumn(label: Text("Email")),
+                        DataColumn(label: Text("Region")), // Add region column
                         DataColumn(label: Text("District")),
                         DataColumn(label: Text("Current Employer")),
                         DataColumn(label: Text("Contact")),
@@ -191,7 +193,7 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     final employerController = TextEditingController();
     final contactController = TextEditingController();
     final experienceController = TextEditingController();
-    final roleController = TextEditingController();
+    String selectedRegion = 'Northern'; // Default value
 
     showDialog(
       context: context,
@@ -236,6 +238,20 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                       return null;
                     },
                   ),
+                  DropdownButtonFormField<String>(
+                    value: selectedRegion,
+                    decoration: InputDecoration(labelText: 'Region'),
+                    items: ['Northern', 'Central', 'Western', 'Eastern']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      selectedRegion = newValue!;
+                    },
+                  ),
                   TextFormField(
                     controller: districtController,
                     decoration: InputDecoration(labelText: 'District'),
@@ -255,10 +271,6 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                         InputDecoration(labelText: 'Years of Experience'),
                     keyboardType: TextInputType.number,
                   ),
-                  TextFormField(
-                    controller: roleController,
-                    decoration: InputDecoration(labelText: 'Role'),
-                  ),
                 ],
               ),
             ),
@@ -276,12 +288,12 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                     employerController.text,
                     contactController.text,
                     experienceController.text,
-                    roleController.text,
+                    selectedRegion, // Pass the selected region
                   );
                   Navigator.of(context).pop();
                 }
               },
-              child: Text('Sign Up'),
+              child: Text('Add Interpreter'),
             ),
           ],
         );

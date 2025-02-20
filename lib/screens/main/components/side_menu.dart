@@ -1,6 +1,9 @@
+import 'package:admin/screens/courses/addcoursewidget.dart';
+import 'package:admin/screens/courses/course.dart';
 import 'package:admin/screens/deaf/deaf_screen.dart';
 import 'package:admin/screens/interpreter/interpreter_screen.dart';
 import 'package:admin/screens/main/main_screen.dart';
+import 'package:admin/screens/videos/video.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async'; // For Timer
@@ -158,8 +161,8 @@ class ResourcesExpansionTile extends StatelessWidget {
       children: [
         ListTile(
           onTap: () {
-            // Navigator.push(context,
-            //     MaterialPageRoute(builder: (context) => CourseScreen()));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => CourseScreen()));
           },
           leading: SvgPicture.asset(
             'assets/icons/menu_doc.svg',
@@ -173,7 +176,8 @@ class ResourcesExpansionTile extends StatelessWidget {
         ),
         ListTile(
           onTap: () {
-            // Handle "Manage Users" action
+             Navigator.push(context,
+                MaterialPageRoute(builder: (context) => VideoScreen()));
           },
           leading: SvgPicture.asset(
             'assets/icons/media.svg',
@@ -187,7 +191,7 @@ class ResourcesExpansionTile extends StatelessWidget {
         ),
         ListTile(
           onTap: () {
-            // Handle "Manage Users" action
+           
           },
           leading: SvgPicture.asset(
             'assets/icons/Documents.svg',

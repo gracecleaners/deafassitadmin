@@ -1,23 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Courses {
-  String? id; // Document ID field
-  String? name;
-  String? description;
-  String? instructor;
-  String? instructorBio;
-  String? instructorImage;
-  String? startDate;
-  String? endDate;
-  String? startTime;
-  String? endTime;
-  String? mode; // Physical or Online
-  String? location; // Location for physical mode
-  String? imageUrl;
-  List<String>? objectives;
-  double? price;
-  int? duration; // in weeks
-  String? difficulty;
+  final String? id;
+  final String? name;
+  final String? description;
+  final String? instructor;
+  final String? instructorBio;
+  final String? instructorImage;
+  final String? startDate;
+  final String? endDate;
+  final String? startTime;
+  final String? endTime;
+  final String? mode;
+  final String? location;
+  final String? imageUrl;
+  final List<String>? objectives;
+  final double? price;
+  final double? originalPrice; // Added for showing discounted price
+  final int? duration;
+  final String? difficulty;
+  final double? rating; // Added for course rating
+  final int? numberOfRatings; // Added for number of ratings
+  final bool? isBestseller; // Added for bestseller badge
 
   Courses({
     this.id,
@@ -35,50 +37,62 @@ class Courses {
     this.imageUrl,
     this.objectives,
     this.price,
+    this.originalPrice,
     this.duration,
     this.difficulty,
+    this.rating,
+    this.numberOfRatings,
+    this.isBestseller,
   });
 
-  Courses.fromJson(Map<String, dynamic> json, {String? documentId}) {
-    id = documentId; // Capture document ID
-    name = json['name'];
-    description = json['description'];
-    instructor = json['instructor'];
-    instructorBio = json['instructorBio'];
-    instructorImage = json['instructorImage'];
-    startDate = json['startDate'];
-    endDate = json['endDate'];
-    startTime = json['startTime'];
-    endTime = json['endTime'];
-    mode = json['mode'];
-    location = json['location']; // Parse location from JSON
-    imageUrl = json['imageUrl'];
-    objectives = json['objectives'] != null 
-        ? List<String>.from(json['objectives'])
-        : null;
-    price = json['price'] != null ? json['price'].toDouble() : null;
-    duration = json['duration'];
-    difficulty = json['difficulty'];
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'description': description,
+      'instructor': instructor,
+      'instructorBio': instructorBio,
+      'instructorImage': instructorImage,
+      'startDate': startDate,
+      'endDate': endDate,
+      'startTime': startTime,
+      'endTime': endTime,
+      'mode': mode,
+      'location': location,
+      'imageUrl': imageUrl,
+      'objectives': objectives,
+      'price': price,
+      'originalPrice': originalPrice,
+      'duration': duration,
+      'difficulty': difficulty,
+      'rating': rating,
+      'numberOfRatings': numberOfRatings,
+      'isBestseller': isBestseller,
+    };
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['name'] = name;
-    data['description'] = description;
-    data['instructor'] = instructor;
-    data['instructorBio'] = instructorBio;
-    data['instructorImage'] = instructorImage;
-    data['startDate'] = startDate;
-    data['endDate'] = endDate;
-    data['startTime'] = startTime;
-    data['endTime'] = endTime;
-    data['mode'] = mode;
-    data['location'] = location; // Add location to JSON
-    data['imageUrl'] = imageUrl;
-    data['objectives'] = objectives;
-    data['price'] = price;
-    data['duration'] = duration;
-    data['difficulty'] = difficulty;
-    return data;
+  factory Courses.fromJson(Map<String, dynamic> json, {String? documentId}) {
+    return Courses(
+      id: documentId,
+      name: json['name'],
+      description: json['description'],
+      instructor: json['instructor'],
+      instructorBio: json['instructorBio'],
+      instructorImage: json['instructorImage'],
+      startDate: json['startDate'],
+      endDate: json['endDate'],
+      startTime: json['startTime'],
+      endTime: json['endTime'],
+      mode: json['mode'],
+      location: json['location'],
+      imageUrl: json['imageUrl'],
+      objectives: List<String>.from(json['objectives'] ?? []),
+      price: json['price']?.toDouble(),
+      originalPrice: json['originalPrice']?.toDouble(),
+      duration: json['duration'],
+      difficulty: json['difficulty'],
+      rating: json['rating']?.toDouble(),
+      numberOfRatings: json['numberOfRatings'],
+      isBestseller: json['isBestseller'],
+    );
   }
 }
