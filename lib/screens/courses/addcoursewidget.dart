@@ -4,9 +4,7 @@ import 'package:admin/constants.dart';
 import 'package:admin/models/courses.dart';
 import 'package:admin/screens/courses/course_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class AddCourse extends StatelessWidget {
   @override
@@ -189,15 +187,7 @@ class CourseCard extends StatelessWidget {
                                       );
                                     }),
                                   ),
-                                  Text(
-                                    '(${course.numberOfRatings?.toString() ?? "0"})',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: Colors.grey[600],
-                                        ),
-                                  ),
+                                  
                                 ],
                               ),
 
@@ -224,11 +214,8 @@ class CourseCard extends StatelessWidget {
                                               fontWeight: FontWeight.bold,
                                             ),
                                       ),
-                                      if (course.originalPrice != null &&
-                                          course.originalPrice! >
-                                              (course.price ?? 0))
                                         Text(
-                                          '\$${course.originalPrice?.toStringAsFixed(2)}',
+                                          '\$${course.price?.toStringAsFixed(2)}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyMedium
@@ -241,26 +228,6 @@ class CourseCard extends StatelessWidget {
                                     ],
                                   ),
 
-                                  // Bestseller Badge
-                                  if (course.isBestseller == true)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.yellow[100],
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'Bestseller',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[800],
-                                        ),
-                                      ),
-                                    ),
                                 ],
                               ),
                             ],

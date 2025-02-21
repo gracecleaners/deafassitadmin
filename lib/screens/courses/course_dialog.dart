@@ -19,8 +19,8 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
-
-  // Course fields
+  String? courseLink;
+  final List<String> courseModes = ['Physical', 'Online'];
   double? rating;
   int? numberOfRatings;
   double? originalPrice;
@@ -55,7 +55,6 @@ class _AddCourseDialogState extends State<AddCourseDialog> {
     'Intermediate',
     'Advanced'
   ];
-  final List<String> courseModes = ['Physical', 'Online', 'Hybrid'];
 
   @override
   void dispose() {
@@ -183,7 +182,6 @@ Future<String?> _uploadImage() async {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -194,10 +192,8 @@ Future<String?> _uploadImage() async {
 
       _formKey.currentState!.save();
 
-      // Upload image if selected
       final String? uploadedImageUrl = await _uploadImage();
 
-      // Create course object
       final Map<String, dynamic> courseData = {
         'name': name,
         'description': description,
@@ -210,35 +206,25 @@ Future<String?> _uploadImage() async {
         'endTime': endTime?.format(context),
         'mode': mode,
         'location': location,
+        'courseLink': courseLink,  // Add courseLink to the data
         'imageUrl': uploadedImageUrl,
         'objectives': objectives,
         'price': price,
         'duration': duration,
-        'difficulty': difficulty,
         'createdAt': FieldValue.serverTimestamp(),
-        'originalPrice':originalPrice,
         'rating': rating ?? 0.0,
-        'numberOfRatings': numberOfRatings ?? 0,
-        'originalPrice': originalPrice,
-        'isBestseller': isBestseller,
       };
 
-      // Save to Firestore
       await _firestore.collection('courses').add(courseData);
 
-      // Close loading indicator
       Navigator.pop(context);
-      // Close dialog
       Navigator.pop(context);
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Course added successfully")),
       );
     } catch (e) {
-      // Close loading indicator
       Navigator.pop(context);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error adding course: $e")),
       );
@@ -424,7 +410,7 @@ Future<String?> _uploadImage() async {
               Text("Course Details",
                   style: Theme.of(context).textTheme.titleMedium),
               SizedBox(height: 16),
-              DropdownButtonFormField<String>(
+             DropdownButtonFormField<String>(
                 decoration: InputDecoration(
                   labelText: "Mode",
                   border: OutlineInputBorder(),
@@ -439,19 +425,39 @@ Future<String?> _uploadImage() async {
                 onChanged: (String? value) {
                   setState(() {
                     mode = value;
+                    // Clear location and courseLink when mode changes
+                    location = null;
+                    courseLink = null;
                   });
                 },
                 validator: (value) => value == null ? "Mode is required" : null,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: "Location",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
+              
+              // Conditional form fields based on mode
+              if (mode == 'Physical') 
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: "Location",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.location_on),
+                  ),
+                  validator: (value) => 
+                    value?.isEmpty ?? true ? "Location is required for physical courses" : null,
+                  onSaved: (value) => location = value,
                 ),
-                onSaved: (value) => location = value,
-              ),
+                
+              if (mode == 'Online')
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: "Course Link",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.link),
+                  ),
+                  validator: (value) => 
+                    value?.isEmpty ?? true ? "Course link is required for online courses" : null,
+                  onSaved: (value) => courseLink = value,
+                ),
               SizedBox(height: 16),
               TextFormField(
                 decoration: InputDecoration(
@@ -546,49 +552,6 @@ Future<String?> _uploadImage() async {
                   return null;
                 },
                 onSaved: (value) => rating = double.tryParse(value ?? "0"),
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: "Number of Ratings",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.people),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) return null;
-                  if (int.tryParse(value!) == null) return "Invalid number";
-                  return null;
-                },
-                onSaved: (value) =>
-                    numberOfRatings = int.tryParse(value ?? "0"),
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: "Original Price (if discounted)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.money_off),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) return null;
-                  if (double.tryParse(value!) == null) return "Invalid price";
-                  return null;
-                },
-                onSaved: (value) =>
-                    originalPrice = double.tryParse(value ?? "0"),
-              ),
-              SizedBox(height: 16),
-              CheckboxListTile(
-                title: Text("Bestseller"),
-                value: isBestseller,
-                onChanged: (value) {
-                  setState(() {
-                    isBestseller = value ?? false;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
               ),
               SizedBox(height: 16),
               if (objectives.isNotEmpty) ...[

@@ -11,15 +11,12 @@ class Courses {
   final String? endTime;
   final String? mode;
   final String? location;
+  final String? courseLink;  
   final String? imageUrl;
   final List<String>? objectives;
   final double? price;
-  final double? originalPrice; // Added for showing discounted price
   final int? duration;
-  final String? difficulty;
-  final double? rating; // Added for course rating
-  final int? numberOfRatings; // Added for number of ratings
-  final bool? isBestseller; // Added for bestseller badge
+  final double? rating;
 
   Courses({
     this.id,
@@ -34,15 +31,12 @@ class Courses {
     this.endTime,
     this.mode,
     this.location,
+    this.courseLink, 
     this.imageUrl,
     this.objectives,
     this.price,
-    this.originalPrice,
     this.duration,
-    this.difficulty,
     this.rating,
-    this.numberOfRatings,
-    this.isBestseller,
   });
 
   Map<String, dynamic> toJson() {
@@ -58,15 +52,12 @@ class Courses {
       'endTime': endTime,
       'mode': mode,
       'location': location,
+      'courseLink': courseLink,  
       'imageUrl': imageUrl,
       'objectives': objectives,
       'price': price,
-      'originalPrice': originalPrice,
       'duration': duration,
-      'difficulty': difficulty,
       'rating': rating,
-      'numberOfRatings': numberOfRatings,
-      'isBestseller': isBestseller,
     };
   }
 
@@ -84,15 +75,12 @@ class Courses {
       endTime: json['endTime'],
       mode: json['mode'],
       location: json['location'],
+      courseLink: json['courseLink'], 
       imageUrl: json['imageUrl'],
       objectives: List<String>.from(json['objectives'] ?? []),
       price: json['price']?.toDouble(),
-      originalPrice: json['originalPrice']?.toDouble(),
       duration: json['duration'],
-      difficulty: json['difficulty'],
       rating: json['rating']?.toDouble(),
-      numberOfRatings: json['numberOfRatings'],
-      isBestseller: json['isBestseller'],
     );
   }
 }
