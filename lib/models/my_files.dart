@@ -1,10 +1,14 @@
 import 'package:admin/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CloudStorageInfo {
   final String? svgSrc, title, totalStorage;
   final int? numOfFiles, percentage;
   final Color? color;
+  final String collection;
+  final String? roleFilter;
 
   CloudStorageInfo({
     this.svgSrc,
@@ -13,40 +17,45 @@ class CloudStorageInfo {
     this.numOfFiles,
     this.percentage,
     this.color,
+    required this.collection,
+    this.roleFilter,
   });
 }
 
-List demoMyFiles = [
+List<CloudStorageInfo> demoMyFiles = [
   CloudStorageInfo(
     title: "Deaf Users",
-    // numOfFiles: 1328,
     svgSrc: "assets/icons/users.svg",
-    totalStorage: "1003",
+    totalStorage: "0", // Will be updated
     color: primaryColor,
     percentage: 100,
+    collection: "users",
+    roleFilter: "deaf",
   ),
   CloudStorageInfo(
     title: "Interpreters",
-    // numOfFiles: 1328,
     svgSrc: "assets/icons/users.svg",
-    totalStorage: "500",
+    totalStorage: "0", // Will be updated
     color: Color(0xFFFFA113),
     percentage: 100,
+    collection: "users",
+    roleFilter: "interpreter",
   ),
   CloudStorageInfo(
     title: "Lessons",
-    // numOfFiles: 1328,
     svgSrc: "assets/icons/menu_doc.svg",
-    totalStorage: "15",
+    totalStorage: "0", // Will be updated
     color: Color(0xFFA4CDFF),
     percentage: 100,
+    collection: "courses",
   ),
   CloudStorageInfo(
     title: "Bookings",
-    // numOfFiles: 5328,
     svgSrc: "assets/icons/menu_store.svg",
-    totalStorage: "1000",
+    totalStorage: "0", // Will be updated
     color: Color(0xFF007EE5),
     percentage: 100,
+    collection: "interpreter_bookings",
   ),
 ];
+

@@ -18,7 +18,7 @@ class AddVideoScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Header(),
+                Header(title: '',),
                 SizedBox(height: defaultPadding),
                 Expanded(
                   child: AddVideoWidget(),

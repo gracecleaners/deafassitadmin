@@ -1,16 +1,56 @@
+import 'package:admin/constants.dart';
 import 'package:admin/models/my_files.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 
-import '../../../constants.dart';
-
-class FileInfoCard extends StatelessWidget {
+class FileInfoCard extends StatefulWidget {
   const FileInfoCard({
     Key? key,
     required this.info,
   }) : super(key: key);
 
   final CloudStorageInfo info;
+
+  @override
+  _FileInfoCardState createState() => _FileInfoCardState();
+}
+
+class _FileInfoCardState extends State<FileInfoCard> {
+  int _count = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCount();
+  }
+
+  Future<void> _fetchCount() async {
+    try {
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      QuerySnapshot snapshot;
+
+      if (widget.info.roleFilter != null) {
+        // For users with role filter
+        snapshot = await firestore
+            .collection(widget.info.collection)
+            .where('role', isEqualTo: widget.info.roleFilter)
+            .get();
+      } else {
+        // For other collections
+        snapshot = await firestore.collection(widget.info.collection).get();
+      }
+
+      setState(() {
+        _count = snapshot.size;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching ${widget.info.title} count: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,38 +72,47 @@ class FileInfoCard extends StatelessWidget {
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(
-                  color: info.color!.withOpacity(0.1),
+                  color: widget.info.color!.withOpacity(0.1),
                   borderRadius: const BorderRadius.all(Radius.circular(10)),
                 ),
                 child: SvgPicture.asset(
-                  info.svgSrc!,
+                  widget.info.svgSrc!,
                   colorFilter: ColorFilter.mode(
-                      info.color ?? Colors.black, BlendMode.srcIn),
+                      widget.info.color ?? Colors.black, BlendMode.srcIn),
                 ),
               ),
               Icon(Icons.more_vert, color: Colors.white54)
             ],
           ),
           Text(
-            info.title!,
+            widget.info.title!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           ProgressLine(
-            color: info.color,
-            percentage: info.percentage,
+            color: widget.info.color,
+            percentage: widget.info.percentage,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(),
-              Text(
-                info.totalStorage!,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall!
-                    .copyWith(color: Colors.white),
-              ),
+              _isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: widget.info.color,
+                      ),
+                    )
+                  : Text(
+                      _count.toString(),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(color: Colors.white),
+                    ),
             ],
           )
         ],

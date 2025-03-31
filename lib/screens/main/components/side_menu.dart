@@ -1,8 +1,12 @@
+import 'package:admin/screens/bookings/booking_screen.dart';
 import 'package:admin/screens/courses/addcoursewidget.dart';
 import 'package:admin/screens/courses/course.dart';
 import 'package:admin/screens/deaf/deaf_screen.dart';
+import 'package:admin/screens/events/events_screen.dart';
 import 'package:admin/screens/interpreter/interpreter_screen.dart';
 import 'package:admin/screens/main/main_screen.dart';
+import 'package:admin/screens/pdf/pdfs_screen.dart';
+import 'package:admin/screens/transactions/transaction_screen.dart';
 import 'package:admin/screens/videos/video.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -55,7 +59,8 @@ class SideMenu extends StatelessWidget {
             title: "Transactions",
             svgSrc: "assets/icons/menu_tran.svg",
             press: () {
-              // Add your navigation logic here
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => TransactionScreen()));
             },
           ),
           UsersExpansionTile(), // Dropdown for "Users"
@@ -64,14 +69,17 @@ class SideMenu extends StatelessWidget {
             title: "Bookings",
             svgSrc: "assets/icons/menu_store.svg",
             press: () {
-              // Add your navigation logic here
+             Navigator.push(context,
+                MaterialPageRoute(builder: (context) => BookingListScreen()));
+          
             },
           ),
           DrawerListTile(
             title: "Events",
             svgSrc: "assets/icons/event.svg",
             press: () {
-              // Add your navigation logic here
+               Navigator.push(context,
+                MaterialPageRoute(builder: (context) => EventsScreen()));
             },
           ),
           DrawerListTile(
@@ -176,7 +184,7 @@ class ResourcesExpansionTile extends StatelessWidget {
         ),
         ListTile(
           onTap: () {
-             Navigator.push(context,
+            Navigator.push(context,
                 MaterialPageRoute(builder: (context) => VideoScreen()));
           },
           leading: SvgPicture.asset(
@@ -191,7 +199,8 @@ class ResourcesExpansionTile extends StatelessWidget {
         ),
         ListTile(
           onTap: () {
-           
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => PdfsScreen()));
           },
           leading: SvgPicture.asset(
             'assets/icons/Documents.svg',

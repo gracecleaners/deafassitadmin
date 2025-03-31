@@ -83,6 +83,7 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
         yearsOfExperience:
             data['yearsOfExperience'], // Match the Firestore field name
         role: data['role'],
+        region: data['region']
       );
     }).toList();
 

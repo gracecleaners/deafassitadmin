@@ -83,7 +83,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     padding: EdgeInsets.all(defaultPadding),
                     child: Column(
                       children: [
-                        Header(),
+                        Header(title: '',),
                         SizedBox(height: defaultPadding),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

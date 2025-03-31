@@ -1,18 +1,23 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:ui';
 
-import '../../../constants.dart';
+import 'package:admin/constants.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class StorageInfoCard extends StatelessWidget {
   const StorageInfoCard({
     Key? key,
-    required this.title,
     required this.svgSrc,
+    required this.title,
     required this.amountOfFiles,
-    required this.numOfFiles, required this.colors, required this.color1,
+    required this.amountOfFile,
+    required this.numOfFiles,
+    required this.colors,
+    required this.color1,
+    this.subtitle = '',
   }) : super(key: key);
 
-  final String title, svgSrc, amountOfFiles;
+  final String svgSrc, title, amountOfFiles,amountOfFile, subtitle;
   final int numOfFiles;
   final Color colors, color1;
 
@@ -22,24 +27,15 @@ class StorageInfoCard extends StatelessWidget {
       margin: EdgeInsets.only(top: defaultPadding),
       padding: EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
-        border: Border.all(width: 2, color: primaryColor.withOpacity(0.15)),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(defaultPadding),
-        ),
+        border: Border.all(width: 2, color: colors),
+        borderRadius: BorderRadius.all(Radius.circular(defaultPadding)),
       ),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: colors
-            ),
-            child: SizedBox(
-              height: 20,
-              width: 20,
-              child: SvgPicture.asset(svgSrc, color: color1,),
-            ),
+          SizedBox(
+            height: 20,
+            width: 20,
+            child: SvgPicture.asset(svgSrc, color: color1),
           ),
           Expanded(
             child: Padding(
@@ -52,12 +48,24 @@ class StorageInfoCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+                  Text(
+                    amountOfFiles,
+                    
+                  ),
+                  Text(
+                    amountOfFile,
+                    
+                  ),
+                  if (subtitle.isNotEmpty)
+                    Text(
+                      subtitle,
+                      
+                    ),
                 ],
               ),
             ),
           ),
-          Text(amountOfFiles)
+          Text("$numOfFiles"),
         ],
       ),
     );

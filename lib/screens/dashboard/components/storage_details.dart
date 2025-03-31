@@ -1,13 +1,65 @@
 import 'package:flutter/material.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../constants.dart';
 import 'chart.dart';
 import 'storage_info_card.dart';
 
-class StorageDetails extends StatelessWidget {
-  const StorageDetails({
-    Key? key,
-  }) : super(key: key);
+class StorageDetails extends StatefulWidget {
+  const StorageDetails({Key? key}) : super(key: key);
+
+  @override
+  _StorageDetailsState createState() => _StorageDetailsState();
+}
+
+class _StorageDetailsState extends State<StorageDetails> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  Map<String, Map<String, int>> _regionStats = {
+    'Central': {'interpreter': 0, 'deaf': 0, 'total': 0},
+    'Eastern': {'interpreter': 0, 'deaf': 0, 'total': 0},
+    'Northern': {'interpreter': 0, 'deaf': 0, 'total': 0},
+    'Western': {'interpreter': 0, 'deaf': 0, 'total': 0},
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final usersSnapshot = await _firestore.collection('users').get();
+      
+      // Reset counts
+      final newStats = {
+        'Central': {'interpreter': 0, 'deaf': 0, 'total': 0},
+        'Eastern': {'interpreter': 0, 'deaf': 0, 'total': 0},
+        'Northern': {'interpreter': 0, 'deaf': 0, 'total': 0},
+        'Western': {'interpreter': 0, 'deaf': 0, 'total': 0},
+      };
+
+      for (final doc in usersSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final region = data['region']?.toString() ?? 'Unknown';
+        final role = data['role']?.toString() ?? 'unknown';
+
+        if (newStats.containsKey(region)) {
+          if (role.toLowerCase() == 'interpreter') {
+            newStats[region]!['interpreter'] = newStats[region]!['interpreter']! + 1;
+          } else if (role.toLowerCase() == 'deaf') {
+            newStats[region]!['deaf'] = newStats[region]!['deaf']! + 1;
+          }
+          newStats[region]!['total'] = newStats[region]!['total']! + 1;
+        }
+      }
+
+      setState(() {
+        _regionStats = newStats;
+      });
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,26 +84,42 @@ class StorageDetails extends StatelessWidget {
           StorageInfoCard(
             svgSrc: "assets/icons/users.svg",
             title: "Central Region",
-            amountOfFiles: "300",
-            numOfFiles: 1328, colors: primaryColor.withOpacity(0.3), color1: primaryColor,
+            amountOfFiles: "${_regionStats['Central']?['interpreter']} interpreters",
+            amountOfFile: "${_regionStats['Central']?['deaf']} Deaf Users",
+            numOfFiles: _regionStats['Central']?['total'] ?? 0,
+            colors: primaryColor.withOpacity(0.3),
+            color1: primaryColor,
+            // subtitle: "${_regionStats['Central']?['deaf']} deaf users",
           ),
           StorageInfoCard(
             svgSrc: "assets/icons/users.svg",
             title: "Eastern Region",
-            amountOfFiles: "300",
-            numOfFiles: 1328, colors: Color(0xFF26E5FF).withOpacity(0.3), color1: Color(0xFF26E5FF),
+            amountOfFiles: "${_regionStats['Eastern']?['interpreter']} interpreters",
+            amountOfFile: "${_regionStats['Eastern']?['deaf']} Deaf Users",
+            numOfFiles: _regionStats['Eastern']?['total'] ?? 0,
+            colors: Color(0xFF26E5FF).withOpacity(0.3),
+            color1: Color(0xFF26E5FF),
+            // subtitle: "${_regionStats['Eastern']?['deaf']} deaf users",
           ),
           StorageInfoCard(
             svgSrc: "assets/icons/users.svg",
             title: "Northern Region",
-            amountOfFiles: "400",
-            numOfFiles: 1328, colors: Color(0xFFFFCF26).withOpacity(0.3), color1: Color(0xFFFFCF26),
+            amountOfFiles: "${_regionStats['Northern']?['interpreter']} interpreters",
+            amountOfFile: "${_regionStats['Northern']?['deaf']} Deaf Users",
+            numOfFiles: _regionStats['Northern']?['total'] ?? 0,
+            colors: Color(0xFFFFCF26).withOpacity(0.3),
+            color1: Color(0xFFFFCF26),
+            // subtitle: "${_regionStats['Northern']?['deaf']} deaf users",
           ),
           StorageInfoCard(
             svgSrc: "assets/icons/users.svg",
             title: "Western Region",
-            amountOfFiles: "500",
-            numOfFiles: 140, colors: Colors.red.withOpacity(0.3), color1: Colors.red,
+            amountOfFiles: "${_regionStats['Western']?['interpreter']} interpreters",
+            amountOfFile: "${_regionStats['Western']?['deaf']} Deaf Users",
+            numOfFiles: _regionStats['Western']?['total'] ?? 0,
+            colors: Colors.red.withOpacity(0.3),
+            color1: Colors.red,
+            // subtitle: "${_regionStats['Western']?['deaf']} deaf users",
           ),
         ],
       ),
