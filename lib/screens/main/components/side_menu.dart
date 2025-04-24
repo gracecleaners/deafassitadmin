@@ -83,13 +83,6 @@ class SideMenu extends StatelessWidget {
             },
           ),
           DrawerListTile(
-            title: "Subscription",
-            svgSrc: "assets/icons/subscription.svg",
-            press: () {
-              // Add your navigation logic here
-            },
-          ),
-          DrawerListTile(
             title: "Report",
             svgSrc: "assets/icons/report.svg",
             press: () {

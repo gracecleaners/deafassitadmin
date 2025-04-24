@@ -33,6 +33,9 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
         password: password,
       );
 
+      // send password reset email
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
@@ -74,17 +77,16 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     List<Interpreter> interpreters = querySnapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Interpreter(
-        name: data['name'],
-        email: data['email'],
-        district: data['district'],
-        currentEmployer:
-            data['currentEmployer'], // Match the Firestore field name
-        contact: data['contact'],
-        yearsOfExperience:
-            data['yearsOfExperience'], // Match the Firestore field name
-        role: data['role'],
-        region: data['region']
-      );
+          name: data['name'],
+          email: data['email'],
+          district: data['district'],
+          currentEmployer:
+              data['currentEmployer'], // Match the Firestore field name
+          contact: data['contact'],
+          yearsOfExperience:
+              data['yearsOfExperience'], // Match the Firestore field name
+          role: data['role'],
+          region: data['region']);
     }).toList();
 
     return interpreters;

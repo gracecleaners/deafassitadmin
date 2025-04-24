@@ -150,72 +150,99 @@ class _AddEventDialogState extends State<AddEventDialog> {
     }
   }
 
-  Future<void> _saveEvent() async {
-    if (!_formKey.currentState!.validate()) return;
+  // ... (keep all your existing imports and code until _saveEvent method)
 
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Center(
-          child: CircularProgressIndicator(),
-        ),
+Future<void> _saveEvent() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  try {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    String? imageUrl;
+    String imagePath = '';
+
+    if (_selectedImageBytes != null) {
+      imageUrl = await _uploadImage();
+      imagePath = 'events/${DateTime.now().millisecondsSinceEpoch}_$_selectedImageName';
+    } else if (widget.event == null && _selectedImageBytes == null) {
+      // Allow events without images
+    } else if (widget.event != null) {
+      imageUrl = widget.event!.imageUrl;
+      imagePath = widget.event!.imageUrl ?? '';
+    }
+
+    final Map<String, dynamic> eventData = {
+      'title': _titleController.text,
+      'description': _descriptionController.text.isEmpty 
+          ? null 
+          : _descriptionController.text,
+      'startDate': _startDate,
+      'endDate': _endDate,
+      'location': _locationController.text.isEmpty 
+          ? null 
+          : _locationController.text,
+      'imageUrl': imageUrl,
+      'category': _categoryController.text.isEmpty 
+          ? null 
+          : _categoryController.text,
+      'tags': _tags.isEmpty ? null : _tags,
+      'isFeatured': _isFeatured,
+    };
+
+    Event updatedEvent;
+    if (widget.event == null) {
+      final docRef = await _firestore.collection('events').add(eventData);
+      updatedEvent = Event(
+        id: docRef.id,
+        title: _titleController.text,
+        description: _descriptionController.text,
+        startDate: _startDate,
+        endDate: _endDate,
+        location: _locationController.text,
+        imageUrl: imageUrl,
+        category: _categoryController.text,
+        tags: _tags,
+        isFeatured: _isFeatured,
       );
-
-      String? imageUrl;
-      String imagePath = '';
-
-      if (_selectedImageBytes != null) {
-        imageUrl = await _uploadImage();
-        imagePath = 'events/${DateTime.now().millisecondsSinceEpoch}_$_selectedImageName';
-      } else if (widget.event == null && _selectedImageBytes == null) {
-        // Allow events without images
-      } else if (widget.event != null) {
-        imageUrl = widget.event!.imageUrl;
-        imagePath = widget.event!.imageUrl ?? '';
-      }
-
-      final Map<String, dynamic> eventData = {
-        'title': _titleController.text,
-        'description': _descriptionController.text.isEmpty 
-            ? null 
-            : _descriptionController.text,
-        'startDate': _startDate,
-        'endDate': _endDate,
-        'location': _locationController.text.isEmpty 
-            ? null 
-            : _locationController.text,
-        'imageUrl': imageUrl,
-        'category': _categoryController.text.isEmpty 
-            ? null 
-            : _categoryController.text,
-        'tags': _tags.isEmpty ? null : _tags,
-        'isFeatured': _isFeatured,
-      };
-
-      if (widget.event == null) {
-        await _firestore.collection('events').add(eventData);
-      } else {
-        await _firestore.collection('events').doc(widget.event!.id).update(eventData);
-      }
-
-      Navigator.pop(context); // Close progress dialog
-      Navigator.pop(context); // Close form dialog
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-          widget.event == null 
-            ? "Event created successfully" 
-            : "Event updated successfully"
-        )),
-      );
-    } catch (e) {
-      Navigator.pop(context); // Close progress dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
+    } else {
+      await _firestore.collection('events').doc(widget.event!.id).update(eventData);
+      updatedEvent = Event(
+        id: widget.event!.id,
+        title: _titleController.text,
+        description: _descriptionController.text,
+        startDate: _startDate,
+        endDate: _endDate,
+        location: _locationController.text,
+        imageUrl: imageUrl,
+        category: _categoryController.text,
+        tags: _tags,
+        isFeatured: _isFeatured,
       );
     }
+
+    Navigator.pop(context); 
+    Navigator.pop(context, updatedEvent); 
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(
+        widget.event == null 
+          ? "Event created successfully" 
+          : "Event updated successfully"
+      )),
+    );
+  } catch (e) {
+    Navigator.pop(context); // Close progress dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: ${e.toString()}")),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

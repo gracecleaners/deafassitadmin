@@ -31,131 +31,26 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
     });
   }
 
-  Future<void> _openVideoUrl(String urlString) async {
-    try {
-      final Uri url = Uri.parse(urlString);
-      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        throw 'Could not launch $urlString';
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not open video: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  // Future<void> _openVideoUrl(String urlString) async {
+  //   try {
+  //     final Uri url = Uri.parse(urlString);
+  //     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+  //       throw 'Could not launch $urlString';
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Could not open video: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Videos",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _showAddVideoDialog(context),
-                  icon: Icon(Icons.add),
-                  label: Text("Add Video"),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('videos').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                final videos = snapshot.data?.docs.map((doc) => doc.data() as Map<String, dynamic>).toList() ?? [];
-
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 16.0,
-                    mainAxisSpacing: 16.0,
-                    childAspectRatio: 0.8,
-                  ),
-                  itemCount: videos.length,
-                  itemBuilder: (context, index) {
-                    final video = videos[index];
-                    return Card(
-                      elevation: 4,
-                      child: InkWell(
-                        onTap: () => _openVideoUrl(video['videoUrl']),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AspectRatio(
-                              aspectRatio: 16/9,
-                              child: video['thumbnailUrl'] != null
-                                  ? Image.network(
-                                      video['thumbnailUrl']!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Container(
-                                          color: Colors.grey[300],
-                                          child: Icon(Icons.error),
-                                        );
-                                      },
-                                    )
-                                  : Container(
-                                      color: Colors.grey[300],
-                                      child: Icon(Icons.video_library),
-                                    ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    video['title'] ?? '',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    video['description'] ?? '',
-                                    style: TextStyle(fontSize: 14),
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+    return Center(
+      child: Text("Video feature coming soon!!"),
     );
   }
 

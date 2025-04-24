@@ -1,5 +1,6 @@
 import 'package:admin/models/event.dart';
 import 'package:admin/screens/events/event_details_screen.dart';
+import 'package:admin/screens/events/events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -24,7 +25,7 @@ class EventCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EventDetailsScreen(event: event),
+              builder: (context) => EventDetails(event: event,),
             ),
           );
         },
@@ -35,7 +36,7 @@ class EventCard extends StatelessWidget {
             if (event.imageUrl != null)
               Image.network(
                 event.imageUrl!,
-                height: 120,
+                height: 250,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
