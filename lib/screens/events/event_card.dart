@@ -1,6 +1,5 @@
 import 'package:admin/models/event.dart';
 import 'package:admin/screens/events/event_details_screen.dart';
-import 'package:admin/screens/events/events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -20,7 +19,6 @@ class EventCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       elevation: 2,
       child: InkWell(
-        // Add this to the InkWell's onTap in event_card.dart
         onTap: () {
           Navigator.push(
             context,
