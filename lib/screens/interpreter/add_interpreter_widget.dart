@@ -1,5 +1,6 @@
 import 'package:admin/models/interpreters.dart';
 import 'package:admin/responsive.dart';
+import 'package:admin/screens/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -77,14 +78,13 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     List<Interpreter> interpreters = querySnapshot.docs.map((doc) {
       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       return Interpreter(
+          uid: doc.id, // Add this line
           name: data['name'],
           email: data['email'],
           district: data['district'],
-          currentEmployer:
-              data['currentEmployer'], // Match the Firestore field name
+          currentEmployer: data['currentEmployer'],
           contact: data['contact'],
-          yearsOfExperience:
-              data['yearsOfExperience'], // Match the Firestore field name
+          yearsOfExperience: data['yearsOfExperience'],
           role: data['role'],
           region: data['region']);
     }).toList();
@@ -93,20 +93,100 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
   }
 
 // Update the DataRow to properly display all fields
-  DataRow recentFileDataRow(Interpreter interpreterInfo) {
+  DataRow recentFileDataRow(BuildContext context, Interpreter interpreterInfo) {
     return DataRow(
       cells: [
         DataCell(Text(interpreterInfo.name ?? '')),
         DataCell(Text(interpreterInfo.email ?? '')),
-        DataCell(Text(interpreterInfo.region ?? '')), // Add region column
+        DataCell(Text(interpreterInfo.region ?? '')),
         DataCell(Text(interpreterInfo.district ?? '')),
         DataCell(Text(interpreterInfo.currentEmployer ?? '')),
         DataCell(Text(interpreterInfo.contact ?? '')),
         DataCell(Text(interpreterInfo.yearsOfExperience ?? '')),
         DataCell(Text(interpreterInfo.role ?? '')),
+        DataCell(
+          IconButton(
+            icon: Icon(Icons.chat),
+            onPressed: () {
+              _startChatWithInterpreter(context, interpreterInfo);
+            },
+          ),
+        ),
       ],
     );
   }
+
+ Future<void> _startChatWithInterpreter(BuildContext context, Interpreter interpreter) async {
+  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  if (currentUserId == null || interpreter.uid == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Unable to start chat. Please try again.')),
+    );
+    return;
+  }
+
+  try {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+
+    // Check if a chat already exists between admin and this interpreter
+    final chatsRef = FirebaseFirestore.instance.collection('chats');
+    final query = await chatsRef
+        .where('participants', arrayContains: currentUserId)
+        .get();
+
+    String? existingChatId;
+    
+    for (var doc in query.docs) {
+      final participants = List<String>.from(doc['participants'] ?? []);
+      if (participants.contains(interpreter.uid)) {
+        existingChatId = doc.id;
+        break;
+      }
+    }
+
+    // If no existing chat, create one
+    if (existingChatId == null) {
+      final newChatRef = await chatsRef.add({
+        'participants': [currentUserId, interpreter.uid],
+        'lastMessage': '',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      existingChatId = newChatRef.id;
+    }
+
+    // Close loading dialog
+    Navigator.of(context).pop();
+
+    // Navigate to chat screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          chatId: existingChatId!, // Now we're sure this has a value
+          recipientId: interpreter.uid!, 
+          recipientName: interpreter.name ?? interpreter.email ?? 'Interpreter',
+        ),
+      ),
+    );
+  } catch (e) {
+    // Close loading dialog if open
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error starting chat: ${e.toString()}')),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -166,15 +246,17 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                       columns: [
                         DataColumn(label: Text("Name")),
                         DataColumn(label: Text("Email")),
-                        DataColumn(label: Text("Region")), // Add region column
+                        DataColumn(label: Text("Region")),
                         DataColumn(label: Text("District")),
                         DataColumn(label: Text("Current Employer")),
                         DataColumn(label: Text("Contact")),
                         DataColumn(label: Text("Years of Experience")),
                         DataColumn(label: Text("Role")),
+                        DataColumn(label: Text("Chat")), // Add this column
                       ],
                       rows: interpreters
-                          .map((interpreter) => recentFileDataRow(interpreter))
+                          .map((interpreter) => recentFileDataRow(
+                              context, interpreter)) // Pass context here
                           .toList(),
                     );
                   },

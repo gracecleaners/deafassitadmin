@@ -61,6 +61,20 @@ class _BookingListScreenState extends State<BookingListScreen> {
         ));
       }
 
+      // Sort bookings by date (latest first)
+      allBookings.sort((a, b) {
+        final dateA = _getDateTimeFromField(a.data['bookingDate']);
+        final dateB = _getDateTimeFromField(b.data['bookingDate']);
+        
+        // Handle null dates by putting them at the end
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        
+        // Sort in descending order (latest first)
+        return dateB.compareTo(dateA);
+      });
+
       setState(() {
         _combinedBookings = allBookings;
         _isLoading = false;
@@ -71,6 +85,22 @@ class _BookingListScreenState extends State<BookingListScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  // Helper method to convert field value to DateTime for sorting
+  DateTime? _getDateTimeFromField(dynamic fieldValue) {
+    if (fieldValue == null) return null;
+
+    try {
+      if (fieldValue is Timestamp) {
+        return fieldValue.toDate();
+      } else if (fieldValue is String) {
+        return DateTime.parse(fieldValue);
+      }
+    } catch (e) {
+      print('Error parsing date for sorting: $e');
+    }
+    return null;
   }
 
   @override

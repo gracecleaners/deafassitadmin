@@ -1,4 +1,6 @@
 import 'package:admin/constants.dart';
+import 'package:admin/controllers/chat.dart';
+import 'package:admin/models/message.dart';
 import 'package:admin/responsive.dart';
 import 'package:admin/screens/dashboard/components/header.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
@@ -118,29 +120,28 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     return Scaffold(
       drawer: SideMenu(),
       body: SafeArea(
-        
-        child: Row(
-          children: [
-            if (Responsive.isDesktop(context))
+          child: Row(
+        children: [
+          if (Responsive.isDesktop(context))
             Expanded(
               flex: 1,
               child: SideMenu(),
             ),
-            Expanded(
+          Expanded(
             flex: 5,
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  Header(title: "Booking"),
+                  Header(title: "Booking Details"),
                   SizedBox(height: defaultPadding),
                   Expanded(child: _buildContent()),
                 ],
               ),
             ),
           ),
-          ],
-        )),
+        ],
+      )),
     );
   }
 
@@ -183,7 +184,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           _buildSectionCard(
             title: 'Booking Information',
             children: [
-              // _buildDetailRow('Booking ID', widget.bookingId),
               _buildDetailRow(
                   'Type',
                   widget.collectionName == 'online_interpretations'
@@ -199,26 +199,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          if (widget.collectionName == 'online_interpretations') ...[
-            _buildSectionCard(
-              title: 'Event Information',
-              children: [
-                if (_bookingData!.containsKey('eventName'))
-                  _buildDetailRow(
-                      'Event Name', _bookingData!['eventName'] as String?),
-                if (_bookingData!.containsKey('eventDate'))
-                  _buildDetailRow(
-                      'Event Date', _formatDate(_bookingData!['eventDate'])),
-                if (_bookingData!.containsKey('eventTime'))
-                  _buildDetailRow(
-                      'Event Time', _bookingData!['eventTime'] as String?),
-                if (_bookingData!.containsKey('duration'))
-                  _buildDetailRow(
-                      'Duration', '${_bookingData!['duration']} minutes'),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
           _buildSectionCard(
             title: 'User Information',
             children: [
@@ -230,8 +210,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   isLink: true,
                   onTap: () => _launchEmail(_relatedData['userEmail']),
                 ),
-              // if (_bookingData!.containsKey('userId'))
-              //   _buildDetailRow('User ID', _bookingData!['userId'] as String?),
               if (_relatedData.containsKey('userPhone'))
                 _buildDetailRow(
                   'Phone',
@@ -246,8 +224,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             title: 'Interpreter Information',
             children: [
               _buildDetailRow('Interpreter', interpreterName),
-              // if (_bookingData!.containsKey('interpreterId'))
-              //   _buildDetailRow('Interpreter ID', _bookingData!['interpreterId'] as String?),
               if (_relatedData.containsKey('interpreterEmail'))
                 _buildDetailRow(
                   'Email',
@@ -276,12 +252,172 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     );
   }
 
+  Future<void> _showPaymentRequestDialog() async {
+    final phoneController = TextEditingController();
+    final accountNameController = TextEditingController();
+    final amountController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final chatService = ChatService();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Send Payment Request'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  hintText: 'e.g. 254712345678',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter phone number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: accountNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Account Name',
+                  hintText: 'e.g. M-PESA John Doe',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter account name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: amountController,
+                decoration: const InputDecoration(
+                  labelText: 'Amount (UGX)',
+                  hintText: 'e.g. 1500',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter amount';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter valid amount';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'This payment request will be sent to the user via chat.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                try {
+                  final userId = _bookingData!['userId'] as String?;
+                  if (userId == null) {
+                    throw Exception('User ID not found');
+                  }
+
+                  // Send payment request message
+                  await chatService.sendMessage(
+                    receiverId: userId,
+                    content:
+                        'Payment Request for In-Person Booking\n\nBooking ID: ${widget.bookingId}\nAmount: UGX ${amountController.text}\nPay to: ${accountNameController.text}\nNumber: ${phoneController.text}\n\nPlease make the payment and upload proof of payment.',
+                    type: MessageType.text,
+                  );
+
+                  // Update booking status to indicate payment request sent
+                  await FirebaseFirestore.instance
+                      .collection(widget.collectionName)
+                      .doc(widget.bookingId)
+                      .update({
+                    'status': 'Pending Payment',
+                    'paymentDetails': {
+                      'phone': phoneController.text,
+                      'accountName': accountNameController.text,
+                      'amount': amountController.text,
+                      'requestSentAt': FieldValue.serverTimestamp(),
+                    },
+                    'timestamp': FieldValue.serverTimestamp(),
+                  });
+
+                  // Send notification
+                  await FirebaseFirestore.instance
+                      .collection('notifications')
+                      .add({
+                    'userId': userId,
+                    'title': 'Payment Request',
+                    'message':
+                        'Payment request for your booking (ID: ${widget.bookingId})',
+                    'timestamp': FieldValue.serverTimestamp(),
+                    'isRead': false,
+                  });
+
+                  // Update user's unread notifications count
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userId)
+                      .update({
+                    'unreadNotifications': FieldValue.increment(1),
+                  });
+
+                  Navigator.pop(context);
+                  await _loadBookingData();
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Payment request sent successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error sending payment request: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Send Request'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatusCard(String status) {
     Color statusColor;
     IconData statusIcon;
 
     switch (status.toLowerCase()) {
-      case 'approved':
+      case 'confirmed':
         statusColor = Colors.green;
         statusIcon = Icons.check_circle;
         break;
@@ -296,6 +432,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       case 'completed':
         statusColor = Colors.blue;
         statusIcon = Icons.task_alt;
+        break;
+      case 'pending payment':
+        statusColor = Colors.purple;
+        statusIcon = Icons.payment;
         break;
       default:
         statusColor = Colors.grey;
@@ -422,7 +562,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),
-                    onPressed: () => _updateStatus('approved'),
+                    onPressed: () => _updateStatus('confirmed'),
                   ),
                 if (status.toLowerCase() == 'pending')
                   ElevatedButton.icon(
@@ -433,11 +573,28 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     ),
                     onPressed: () => _updateStatus('declined'),
                   ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.note_add),
-                  label: const Text('Add Note'),
-                  onPressed: _addNote,
-                ),
+                // Invoke Payment button for confirmed in-person bookings
+                if (widget.collectionName == 'interpreter_bookings' &&
+                    status.toLowerCase() == 'confirmed')
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.payment),
+                    label: const Text('Invoke Payment'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: _showPaymentRequestDialog,
+                  ),
+                if (status.toLowerCase() == 'confirmed' ||
+                    status.toLowerCase() == 'pending payment')
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Mark as Completed'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                    ),
+                    onPressed: () => _updateStatus('completed'),
+                  ),
               ],
             ),
           ],
@@ -446,6 +603,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     );
   }
 
+  // Updated _updateStatus method with better debugging
   Future<void> _updateStatus(String newStatus) async {
     try {
       setState(() => _isUpdating = true);
@@ -458,71 +616,105 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      if (newStatus == 'confirmed') {
+        final userId = _bookingData!['userId'] as String?;
+        if (userId != null) {
+          try {
+            final chatService = ChatService();
+            await chatService.sendMessage(
+              receiverId: userId,
+              content:
+                  'Your booking (ID: ${widget.bookingId}) has been confirmed.',
+            );
+          } catch (e) {
+            print('Error sending confirmation notification: $e');
+          }
+        }
+      }
+
+      // UPDATED: Send notification to interpreter when marking in-person booking as completed
+      if (newStatus == 'completed' &&
+          widget.collectionName == 'interpreter_bookings') {
+        final interpreterId = _bookingData!['interpreterId'] as String?;
+
+        print('DEBUG: Creating notification for interpreterId: $interpreterId');
+        print('DEBUG: BookingId: ${widget.bookingId}');
+
+        if (interpreterId != null) {
+          try {
+            // Create the notification data
+            final notificationData = {
+              'userId': interpreterId,
+              'title': 'Booking Completed - Payment Received',
+              'message':
+                  'Payment has been received for your booking (ID: ${widget.bookingId}). The booking is now completed.',
+              'bookingId': widget.bookingId,
+              'bookingType': 'in-person',
+              'timestamp': FieldValue.serverTimestamp(),
+              'isRead': false, // Make sure this is explicitly false
+              'type': 'booking_completed',
+            };
+
+            print('DEBUG: Notification data being sent: $notificationData');
+
+            // Send notification to interpreter
+            final docRef = await FirebaseFirestore.instance
+                .collection('notifications')
+                .add(notificationData);
+
+            print('DEBUG: Notification created with ID: ${docRef.id}');
+
+            // Verify the notification was created correctly
+            final createdNotification = await docRef.get();
+            print(
+                'DEBUG: Created notification data: ${createdNotification.data()}');
+
+            // Update interpreter's unread notifications count
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(interpreterId)
+                .update({
+              'unreadNotifications': FieldValue.increment(1),
+              'hasCompletedBookings': true,
+            });
+
+            print(
+                'DEBUG: Notification successfully sent to interpreter: $interpreterId');
+
+            // Additional verification - query for the notification
+            final verificationQuery = await FirebaseFirestore.instance
+                .collection('notifications')
+                .where('userId', isEqualTo: interpreterId)
+                .where('type', isEqualTo: 'booking_completed')
+                .where('isRead', isEqualTo: false)
+                .get();
+
+            print(
+                'DEBUG: Verification query found ${verificationQuery.docs.length} unread booking_completed notifications');
+          } catch (e) {
+            print(
+                'ERROR: Failed to send completion notification to interpreter: $e');
+            print('ERROR: Stack trace: ${StackTrace.current}');
+          }
+        } else {
+          print('DEBUG: No interpreterId found in booking data');
+          print('DEBUG: Booking data: $_bookingData');
+        }
+      }
+
       await _loadBookingData();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Status updated to $newStatus')),
       );
     } catch (e) {
+      print('ERROR: Failed to update status: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error updating status: $e')),
       );
     } finally {
       setState(() => _isUpdating = false);
     }
-  }
-
-  Future<void> _addNote() async {
-    final controller = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Note'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter your note here',
-          ),
-          maxLines: 3,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (controller.text.trim().isNotEmpty) {
-                try {
-                  await FirebaseFirestore.instance
-                      .collection(widget.collectionName)
-                      .doc(widget.bookingId)
-                      .update({
-                    'notes': FieldValue.arrayUnion([
-                      {
-                        'text': controller.text.trim(),
-                        'timestamp': FieldValue.serverTimestamp(),
-                        'addedBy': 'Admin',
-                      }
-                    ]),
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Note added successfully')),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error adding note: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
   }
 
   String _formatDate(dynamic date) {

@@ -1,4 +1,5 @@
 import 'package:admin/screens/bookings/booking_screen.dart';
+import 'package:admin/screens/chat/chat_list.dart';
 import 'package:admin/screens/courses/addcoursewidget.dart';
 import 'package:admin/screens/courses/course.dart';
 import 'package:admin/screens/deaf/deaf_screen.dart';
@@ -60,7 +61,7 @@ class SideMenu extends StatelessWidget {
             svgSrc: "assets/icons/menu_tran.svg",
             press: () {
               Navigator.push(context,
-                MaterialPageRoute(builder: (context) => TransactionScreen()));
+                  MaterialPageRoute(builder: (context) => TransactionScreen()));
             },
           ),
           UsersExpansionTile(), // Dropdown for "Users"
@@ -69,26 +70,25 @@ class SideMenu extends StatelessWidget {
             title: "Bookings",
             svgSrc: "assets/icons/menu_store.svg",
             press: () {
-             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => BookingListScreen()));
-          
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => BookingListScreen()));
             },
           ),
           DrawerListTile(
             title: "Events",
             svgSrc: "assets/icons/event.svg",
             press: () {
-               Navigator.push(context,
-                MaterialPageRoute(builder: (context) => EventsScreen()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => EventsScreen()));
             },
           ),
           DrawerListTile(
-            title: "Report",
-            svgSrc: "assets/icons/report.svg",
-            press: () {
-              // Add your navigation logic here
-            },
-          ),
+              title: "Chats",
+              svgSrc: "assets/icons/report.svg",
+              press: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ChatListScreen()));
+              }),
         ],
       ),
     );

@@ -1,4 +1,5 @@
 class Interpreter {
+  String? uid;
   String? name;
   String? email;
   String? district;
@@ -6,9 +7,10 @@ class Interpreter {
   String? contact;
   String? yearsOfExperience;
   String? role;
-  String? region;  // New field
+  String? region; // New field
 
   Interpreter({
+    this.uid,
     this.name,
     this.email,
     this.district,
@@ -16,7 +18,7 @@ class Interpreter {
     this.contact,
     this.yearsOfExperience,
     this.role,
-    this.region,  // New field
+    this.region, // New field
   });
 
   Interpreter.fromJson(Map<String, dynamic> json) {
@@ -27,7 +29,7 @@ class Interpreter {
     contact = json['contact'];
     yearsOfExperience = json['yearsOfExperience'];
     role = json['role'];
-    region = json['region'];  // New field
+    region = json['region']; // New field
   }
 
   Map<String, dynamic> toJson() {
@@ -39,7 +41,7 @@ class Interpreter {
     data['contact'] = this.contact;
     data['yearsOfExperience'] = this.yearsOfExperience;
     data['role'] = this.role;
-    data['region'] = this.region;  // New field
+    data['region'] = this.region; // New field
     return data;
   }
 }
