@@ -158,7 +158,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             }
 
                             if (snapshot.hasError) {
-                              
                               print("Error: ${snapshot.error}");
                             }
 
@@ -534,6 +533,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   var userData = user.data() as Map<String, dynamic>;
                   String userName = userData['name'] ?? "Unknown";
                   String? photoUrl = userData['photoURL'];
+                  String role = userData['role'];
 
                   return ListTile(
                     leading: CircleAvatar(
@@ -549,7 +549,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             )
                           : null,
                     ),
-                    title: Text(userName),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(userName),
+                        Text(
+                          "(${role.toUpperCase()})",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
                     onTap: () {
                       Navigator.pop(context);
                       _startNewChat(user.id, userName);

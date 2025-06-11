@@ -213,15 +213,12 @@ class _BookingListScreenState extends State<BookingListScreen> {
           child: ListTile(
             title: Text(eventName != null
                 ? 'Event: $eventName'
-                : 'Booking: ${_formatBookingId(bookingId)}'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+                : 'Booking: In-person Booking'),
+            subtitle: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Date: $formattedDate'),
                 Text('Status: ${status ?? 'Unknown'}'),
-                Text('Interpreter: $interpreterName'),
-                Text(
-                    'Type: ${collectionName == 'online_interpretations' ? 'Online' : 'In-Person'}'),
               ],
             ),
             onTap: () {

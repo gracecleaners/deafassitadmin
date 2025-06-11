@@ -23,7 +23,7 @@ class _ListDeafWidgetState extends State<ListDeafWidget> {
   try {
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('users')
-        .where('role', isEqualTo: 'deaf') // Filter by role
+        .where('role', isEqualTo: 'Individual') // Filter by role
         .get();
 
     return snapshot.docs.map((doc) {
