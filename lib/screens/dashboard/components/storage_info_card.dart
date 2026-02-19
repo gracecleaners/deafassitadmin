@@ -29,7 +29,8 @@ class StorageInfoCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
@@ -46,7 +47,9 @@ class StorageInfoCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(
-                    fontSize: 13, fontWeight: FontWeight.w600, color: darkTextColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: darkTextColor,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -66,7 +69,9 @@ class StorageInfoCard extends StatelessWidget {
             child: Text(
               "$numOfFiles",
               style: GoogleFonts.inter(
-                fontSize: 13, fontWeight: FontWeight.w700, color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: color,
               ),
             ),
           ),
