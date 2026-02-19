@@ -568,6 +568,25 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                   ),
                 ),
               ),
+              const SizedBox(width: 6),
+              Tooltip(
+                message: 'Delete interpreter',
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: dangerColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded,
+                        color: dangerColor, size: 18),
+                    onPressed: () =>
+                        _showDeleteInterpreterDialog(context, interpreterInfo),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                    padding: const EdgeInsets.all(6),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -604,6 +623,144 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error sending reset link: ${e.toString()}'),
+            backgroundColor: dangerColor,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showDeleteInterpreterDialog(
+      BuildContext context, Interpreter interpreter) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: dangerColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.delete_outline_rounded,
+                  color: dangerColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text('Delete Interpreter',
+                  style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: darkTextColor)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete "${interpreter.name}"?',
+              style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This will remove the interpreter from the system. This action cannot be undone.',
+              style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child:
+                Text('Cancel', style: GoogleFonts.inter(color: bodyTextColor)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: dangerColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteInterpreter(interpreter);
+            },
+            child: Text('Delete',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteInterpreter(Interpreter interpreter) async {
+    if (interpreter.uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: Interpreter ID not found',
+              style: GoogleFonts.inter()),
+          backgroundColor: dangerColor,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Delete interpreter document from Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(interpreter.uid)
+          .delete();
+
+      // Clean up related notifications
+      final notifs = await FirebaseFirestore.instance
+          .collection('notifications')
+          .where('userId', isEqualTo: interpreter.uid)
+          .get();
+      for (var doc in notifs.docs) {
+        await doc.reference.delete();
+      }
+
+      // Refresh the list
+      setState(() {
+        _futureInterpreters = fetchInterpreters();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text('${interpreter.name} has been deleted',
+                    style: GoogleFonts.inter()),
+              ],
+            ),
+            backgroundColor: successColor,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting interpreter: $e',
+                style: GoogleFonts.inter()),
             backgroundColor: dangerColor,
             behavior: SnackBarBehavior.floating,
             shape:

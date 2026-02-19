@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
           bodyMedium: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
           bodySmall: GoogleFonts.inter(fontSize: 12, color: bodyTextColor),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 0,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

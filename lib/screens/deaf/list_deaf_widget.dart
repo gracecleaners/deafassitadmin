@@ -22,14 +22,23 @@ class _ListDeafWidgetState extends State<ListDeafWidget> {
 
   Future<List<DeafUser>> fetchDeafUsers() async {
     try {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
+      // Fetch both Individual and Organization users
+      QuerySnapshot individualSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('role', isEqualTo: 'Individual')
           .get();
 
-      return snapshot.docs.map((doc) {
+      QuerySnapshot orgSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'Organization')
+          .get();
+
+      final allDocs = [...individualSnapshot.docs, ...orgSnapshot.docs];
+
+      return allDocs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return DeafUser(
+          uid: doc.id,
           name: data['name'],
           email: data['email'],
           district: data['district'],
@@ -202,6 +211,12 @@ class _ListDeafWidgetState extends State<ListDeafWidget> {
                                         fontWeight: FontWeight.w600,
                                         color: bodyTextColor,
                                         fontSize: 13))),
+                            DataColumn(
+                                label: Text("Actions",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
                           ],
                           rows: deafUsers
                               .map((deafUser) => _buildDataRow(deafUser))
@@ -247,7 +262,176 @@ class _ListDeafWidgetState extends State<ListDeafWidget> {
             style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
         DataCell(Text(deafUser.contact ?? "N/A",
             style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Tooltip(
+                message: 'Delete user',
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: dangerColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded,
+                        color: dangerColor, size: 18),
+                    onPressed: () => _showDeleteDialog(deafUser),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                    padding: const EdgeInsets.all(6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
+  }
+
+  void _showDeleteDialog(DeafUser deafUser) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: dangerColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.delete_outline_rounded,
+                  color: dangerColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text('Delete User',
+                  style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: darkTextColor)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete "${deafUser.name}"?',
+              style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This will remove the user from the system. This action cannot be undone.',
+              style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child:
+                Text('Cancel', style: GoogleFonts.inter(color: bodyTextColor)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: dangerColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteDeafUser(deafUser);
+            },
+            child: Text('Delete',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteDeafUser(DeafUser deafUser) async {
+    if (deafUser.uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: User ID not found', style: GoogleFonts.inter()),
+          backgroundColor: dangerColor,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Delete user document from Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(deafUser.uid)
+          .delete();
+
+      // Clean up related data
+      // Delete user notifications
+      final userNotifs = await FirebaseFirestore.instance
+          .collection('user_notifications')
+          .where('userId', isEqualTo: deafUser.uid)
+          .get();
+      for (var doc in userNotifs.docs) {
+        await doc.reference.delete();
+      }
+
+      final notifs = await FirebaseFirestore.instance
+          .collection('notifications')
+          .where('userId', isEqualTo: deafUser.uid)
+          .get();
+      for (var doc in notifs.docs) {
+        await doc.reference.delete();
+      }
+
+      // Refresh the list
+      setState(() {
+        _futureDeafUsers = fetchDeafUsers();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text('${deafUser.name} has been deleted',
+                    style: GoogleFonts.inter()),
+              ],
+            ),
+            backgroundColor: successColor,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Error deleting user: $e', style: GoogleFonts.inter()),
+            backgroundColor: dangerColor,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
   }
 }

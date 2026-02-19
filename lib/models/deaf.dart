@@ -1,4 +1,5 @@
 class DeafUser {
+  String? uid;
   String? name;
   String? email;
   String? district;
@@ -8,7 +9,8 @@ class DeafUser {
   String? role;
 
   DeafUser(
-      {this.name,
+      {this.uid,
+      this.name,
       this.email,
       this.district,
       this.currentEmployer,
@@ -16,7 +18,8 @@ class DeafUser {
       this.yearsOfExperience,
       this.role});
 
-  DeafUser.fromJson(Map<String, dynamic> json) {
+  DeafUser.fromJson(Map<String, dynamic> json, {String? documentId}) {
+    uid = documentId;
     name = json['name'];
     email = json['email'];
     district = json['district'];
@@ -27,15 +30,14 @@ class DeafUser {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    data['email'] = this.email;
-    data['district'] = this.district;
-    data['current_employer'] = this.currentEmployer;
-    data['contact'] = this.contact;
-    data['years_of_experience'] = this.yearsOfExperience;
-    data['role'] = this.role;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    data['email'] = email;
+    data['district'] = district;
+    data['current_employer'] = currentEmployer;
+    data['contact'] = contact;
+    data['years_of_experience'] = yearsOfExperience;
+    data['role'] = role;
     return data;
   }
 }
-

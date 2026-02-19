@@ -200,7 +200,10 @@ class AdminNotificationsScreen extends StatelessWidget {
                       Expanded(
                         child: Text(
                           notification['eventName'] ??
-                              'Online Interpretation Request',
+                              notification['title'] ??
+                              (notification['type'] == 'physical_booking'
+                                  ? 'In-Person Booking Request'
+                                  : 'Online Interpretation Request'),
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight:
@@ -232,15 +235,31 @@ class AdminNotificationsScreen extends StatelessWidget {
                     spacing: 16,
                     runSpacing: 4,
                     children: [
-                      _infoChip(
-                          Icons.calendar_today_rounded,
-                          DateFormat('MMM d, yyyy').format(
-                              (notification['eventDate'] as Timestamp)
-                                  .toDate())),
-                      _infoChip(Icons.access_time_rounded,
-                          '${notification['eventTime']}'),
-                      _infoChip(Icons.timer_outlined,
-                          '${notification['duration']} min'),
+                      if (notification['eventDate'] != null)
+                        _infoChip(
+                            Icons.calendar_today_rounded,
+                            DateFormat('MMM d, yyyy').format(
+                                (notification['eventDate'] as Timestamp)
+                                    .toDate()))
+                      else if (notification['meetingDate'] != null)
+                        _infoChip(
+                            Icons.calendar_today_rounded,
+                            notification['meetingDate'] is Timestamp
+                                ? DateFormat('MMM d, yyyy').format(
+                                    (notification['meetingDate'] as Timestamp)
+                                        .toDate())
+                                : '${notification['meetingDate']}'),
+                      if (notification['eventTime'] != null)
+                        _infoChip(Icons.access_time_rounded,
+                            '${notification['eventTime']}')
+                      else if (notification['meetingTime'] != null)
+                        _infoChip(Icons.access_time_rounded,
+                            '${notification['meetingTime']}'),
+                      if (notification['duration'] != null)
+                        _infoChip(Icons.timer_outlined,
+                            '${notification['duration']} min'),
+                      if (notification['type'] == 'physical_booking')
+                        _infoChip(Icons.location_on_outlined, 'In-Person'),
                     ],
                   ),
                 ],
@@ -507,9 +526,13 @@ class AdminNotificationsScreen extends StatelessWidget {
   ) async {
     final adminId = FirebaseAuth.instance.currentUser?.uid;
     final userId = notification['userId'];
-    final eventName = notification['eventName'] ?? 'Online Interpretation';
+    final notificationType = notification['type'];
+    final eventName = notification['eventName'] ??
+        notification['title'] ??
+        (notificationType == 'physical_booking'
+            ? 'In-Person Booking'
+            : 'Online Interpretation');
     final eventDate = notification['eventDate'];
-    final eventTime = notification['eventTime'];
 
     // Update status with payment details in admin_notifications
     await FirebaseFirestore.instance
@@ -523,8 +546,21 @@ class AdminNotificationsScreen extends StatelessWidget {
       'amount': amount,
     });
 
-    // Find and update the corresponding online_interpretations record
-    if (userId != null && eventDate != null) {
+    // Update the corresponding booking record based on type
+    if (notificationType == 'physical_booking') {
+      final bookingId = notification['bookingId'];
+      if (bookingId != null) {
+        await FirebaseFirestore.instance
+            .collection('interpreter_bookings')
+            .doc(bookingId)
+            .update({
+          'status': 'Pending Payment',
+          'paymentNumber': paymentNumber,
+          'paymentName': paymentName,
+          'amount': amount,
+        });
+      }
+    } else if (userId != null && eventDate != null) {
       final interpretationsQuery = await FirebaseFirestore.instance
           .collection('online_interpretations')
           .where('userId', isEqualTo: userId)
@@ -593,15 +629,25 @@ class AdminNotificationsScreen extends StatelessWidget {
       'lastMessageTime': FieldValue.serverTimestamp(),
     });
 
-    // Create user notification
+    // Create user notification in notifications collection
     await FirebaseFirestore.instance.collection('notifications').add({
       'userId': userId,
-      'title': 'Interpretation Request Accepted',
+      'title': 'Request Accepted',
       'message':
           'Your request for $eventName requires payment. Please check chat for payment details and upload payment proof.',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
       'chatId': chatId,
+    });
+
+    // Create user notification in user_notifications collection
+    await FirebaseFirestore.instance.collection('user_notifications').add({
+      'userId': userId,
+      'title': 'Request Accepted',
+      'message':
+          'Your request for $eventName requires payment. Please check chat for payment details.',
+      'timestamp': FieldValue.serverTimestamp(),
+      'read': false,
     });
 
     // Update user's unread counts (1 notification + 2 messages)
@@ -719,7 +765,12 @@ class AdminNotificationsScreen extends StatelessWidget {
       String docId, Map<String, dynamic> notification) async {
     final adminId = FirebaseAuth.instance.currentUser?.uid;
     final userId = notification['userId'];
-    final eventName = notification['eventName'] ?? 'Online Interpretation';
+    final notificationType = notification['type'];
+    final eventName = notification['eventName'] ??
+        notification['title'] ??
+        (notificationType == 'physical_booking'
+            ? 'In-Person Booking'
+            : 'Online Interpretation');
 
     // Update status to Confirmed in admin_notifications
     await FirebaseFirestore.instance
@@ -729,19 +780,29 @@ class AdminNotificationsScreen extends StatelessWidget {
       'status': 'Confirmed',
     });
 
-    // Find and update the corresponding online_interpretations record
-    final eventDate = notification['eventDate'];
-    if (userId != null && eventDate != null) {
-      final interpretationsQuery = await FirebaseFirestore.instance
-          .collection('online_interpretations')
-          .where('userId', isEqualTo: userId)
-          .where('eventDate', isEqualTo: eventDate)
-          .get();
+    // Update the corresponding booking record based on type
+    if (notificationType == 'physical_booking') {
+      final bookingId = notification['bookingId'];
+      if (bookingId != null) {
+        await FirebaseFirestore.instance
+            .collection('interpreter_bookings')
+            .doc(bookingId)
+            .update({'status': 'Confirmed'});
+      }
+    } else {
+      final eventDate = notification['eventDate'];
+      if (userId != null && eventDate != null) {
+        final interpretationsQuery = await FirebaseFirestore.instance
+            .collection('online_interpretations')
+            .where('userId', isEqualTo: userId)
+            .where('eventDate', isEqualTo: eventDate)
+            .get();
 
-      for (var doc in interpretationsQuery.docs) {
-        await doc.reference.update({
-          'status': 'Confirmed',
-        });
+        for (var doc in interpretationsQuery.docs) {
+          await doc.reference.update({
+            'status': 'Confirmed',
+          });
+        }
       }
     }
 
@@ -756,7 +817,7 @@ class AdminNotificationsScreen extends StatelessWidget {
       'senderId': adminId,
       'receiverId': userId,
       'text':
-          'Payment confirmed for "$eventName". You will receive the meeting link soon.',
+          'Payment confirmed for "$eventName". ${notificationType == 'physical_booking' ? 'Your booking is now confirmed.' : 'You will receive the meeting link soon.'}',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
       'type': 'system',
@@ -768,15 +829,23 @@ class AdminNotificationsScreen extends StatelessWidget {
       'lastMessageTime': FieldValue.serverTimestamp(),
     });
 
-    // Create notification for user
+    // Create notification for user in notifications collection
     await FirebaseFirestore.instance.collection('notifications').add({
       'userId': userId,
       'title': 'Payment Confirmed',
-      'message':
-          'Your payment for $eventName has been confirmed. You will receive the meeting link soon.',
+      'message': 'Your payment for $eventName has been confirmed.',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
       'chatId': chatId,
+    });
+
+    // Create notification for user in user_notifications collection
+    await FirebaseFirestore.instance.collection('user_notifications').add({
+      'userId': userId,
+      'title': 'Payment Confirmed',
+      'message': 'Your payment for $eventName has been confirmed.',
+      'timestamp': FieldValue.serverTimestamp(),
+      'read': false,
     });
 
     // Update user's unread counts
@@ -822,33 +891,82 @@ class AdminNotificationsScreen extends StatelessWidget {
         .update({'status': status, 'isRead': true});
 
     final userId = notification['userId'];
-    final eventDate = notification['eventDate'];
+    final notificationType = notification['type'];
 
-    if (userId != null && eventDate != null) {
-      final interpretationsQuery = await FirebaseFirestore.instance
-          .collection('online_interpretations')
-          .where('userId', isEqualTo: userId)
-          .where('eventDate', isEqualTo: eventDate)
-          .get();
+    // Update the corresponding booking record based on type
+    if (notificationType == 'physical_booking') {
+      // Handle physical/in-person bookings
+      final bookingId = notification['bookingId'];
+      if (bookingId != null) {
+        await FirebaseFirestore.instance
+            .collection('interpreter_bookings')
+            .doc(bookingId)
+            .update({'status': status});
+      }
+    } else {
+      // Handle online interpretations
+      final eventDate = notification['eventDate'];
+      if (userId != null && eventDate != null) {
+        final interpretationsQuery = await FirebaseFirestore.instance
+            .collection('online_interpretations')
+            .where('userId', isEqualTo: userId)
+            .where('eventDate', isEqualTo: eventDate)
+            .get();
 
-      for (var doc in interpretationsQuery.docs) {
-        await doc.reference.update({'status': status});
+        for (var doc in interpretationsQuery.docs) {
+          await doc.reference.update({'status': status});
+        }
       }
     }
 
+    final eventName = notification['eventName'] ??
+        notification['title'] ??
+        (notificationType == 'physical_booking'
+            ? 'In-Person Booking'
+            : 'Online Interpretation');
+
+    // Write to notifications collection
     await FirebaseFirestore.instance.collection('notifications').add({
       'userId': notification['userId'],
-      'title': 'Interpretation Request $status',
-      'message':
-          'Your request for ${notification['eventName']} has been $status',
+      'title': 'Request $status',
+      'message': 'Your request for $eventName has been $status',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
+    });
+
+    // Write to user_notifications collection
+    await FirebaseFirestore.instance.collection('user_notifications').add({
+      'userId': notification['userId'],
+      'title': 'Request $status',
+      'message': 'Your request for $eventName has been $status',
+      'timestamp': FieldValue.serverTimestamp(),
+      'read': false,
     });
 
     if (notification['userId'] != null) {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(notification['userId'])
+          .update({
+        'unreadNotifications': FieldValue.increment(1),
+      });
+    }
+
+    // Also notify interpreter for physical bookings
+    if (notificationType == 'physical_booking' &&
+        notification['interpreterId'] != null) {
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': notification['interpreterId'],
+        'title': 'Booking $status by Admin',
+        'message':
+            'The in-person booking with ${notification['userName'] ?? 'a user'} has been $status by the admin.',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+      });
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(notification['interpreterId'])
           .update({
         'unreadNotifications': FieldValue.increment(1),
       });
@@ -932,27 +1050,54 @@ class AdminNotificationsScreen extends StatelessWidget {
           .delete();
 
       final userId = notification['userId'];
-      final eventDate = notification['eventDate'];
+      final notificationType = notification['type'];
+      final eventName = notification['eventName'] ??
+          notification['title'] ??
+          (notificationType == 'physical_booking'
+              ? 'In-Person Booking'
+              : 'Online Interpretation');
 
-      if (userId != null && eventDate != null) {
-        final interpretationsQuery = await FirebaseFirestore.instance
-            .collection('online_interpretations')
-            .where('userId', isEqualTo: userId)
-            .where('eventDate', isEqualTo: eventDate)
-            .get();
+      // Delete the corresponding booking record based on type
+      if (notificationType == 'physical_booking') {
+        final bookingId = notification['bookingId'];
+        if (bookingId != null) {
+          await FirebaseFirestore.instance
+              .collection('interpreter_bookings')
+              .doc(bookingId)
+              .delete();
+        }
+      } else {
+        final eventDate = notification['eventDate'];
+        if (userId != null && eventDate != null) {
+          final interpretationsQuery = await FirebaseFirestore.instance
+              .collection('online_interpretations')
+              .where('userId', isEqualTo: userId)
+              .where('eventDate', isEqualTo: eventDate)
+              .get();
 
-        for (var doc in interpretationsQuery.docs) {
-          await doc.reference.delete();
+          for (var doc in interpretationsQuery.docs) {
+            await doc.reference.delete();
+          }
         }
       }
 
+      // Notify the user in both collections
       await FirebaseFirestore.instance.collection('notifications').add({
         'userId': notification['userId'],
         'title': 'Booking Deleted',
         'message':
-            'Your interpretation request for ${notification['eventName']} has been deleted by the administrator',
+            'Your request for $eventName has been deleted by the administrator',
         'timestamp': FieldValue.serverTimestamp(),
         'isRead': false,
+      });
+
+      await FirebaseFirestore.instance.collection('user_notifications').add({
+        'userId': notification['userId'],
+        'title': 'Booking Deleted',
+        'message':
+            'Your request for $eventName has been deleted by the administrator',
+        'timestamp': FieldValue.serverTimestamp(),
+        'read': false,
       });
 
       if (notification['userId'] != null) {
