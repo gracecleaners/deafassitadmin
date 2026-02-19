@@ -1,8 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:admin/constants.dart';
 import 'package:admin/responsive.dart';
 import 'package:admin/screens/dashboard/components/header.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -335,11 +339,157 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
     );
   }
 
+  // ==================== IMAGE UPLOAD ====================
+  Future<String?> _uploadImage(
+      Uint8List bytes, String fileName, StateSetter setDialogState,
+      ValueChanged<bool> setUploading, ValueChanged<String?> setUrl) async {
+    try {
+      setUploading(true);
+      final ext = fileName.split('.').last;
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('update_images')
+          .child('${DateTime.now().millisecondsSinceEpoch}.$ext');
+      final uploadTask = await ref.putData(
+          bytes, SettableMetadata(contentType: 'image/$ext'));
+      final url = await uploadTask.ref.getDownloadURL();
+      setUrl(url);
+      setUploading(false);
+      return url;
+    } catch (e) {
+      setUploading(false);
+      return null;
+    }
+  }
+
+  Widget _buildImagePicker({
+    required String? imageUrl,
+    required Uint8List? pickedBytes,
+    required bool isUploading,
+    required StateSetter setDialogState,
+    required ValueChanged<Uint8List?> onBytesPicked,
+    required ValueChanged<String?> onUrlChanged,
+    required ValueChanged<bool> onUploadingChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldLabel('Image'),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            children: [
+              // Preview
+              if (pickedBytes != null)
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(10)),
+                  child: Image.memory(pickedBytes,
+                      height: 140, width: double.infinity, fit: BoxFit.cover),
+                )
+              else if (imageUrl != null && imageUrl.isNotEmpty)
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(10)),
+                  child: Image.network(imageUrl,
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                            height: 80,
+                            color: bgColor,
+                            child: Center(
+                              child: Text('Image failed to load',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 12, color: bodyTextColor)),
+                            ),
+                          )),
+                ),
+              // Buttons
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    if (isUploading)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: primaryColor),
+                      ),
+                    if (isUploading)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text('Uploading...',
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: bodyTextColor)),
+                      ),
+                    if (!isUploading)
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final result = await FilePicker.platform.pickFiles(
+                            type: FileType.image,
+                            withData: true,
+                          );
+                          if (result != null &&
+                              result.files.single.bytes != null) {
+                            final bytes = result.files.single.bytes!;
+                            final name = result.files.single.name;
+                            onBytesPicked(bytes);
+                            await _uploadImage(
+                                bytes, name, setDialogState,
+                                onUploadingChanged, onUrlChanged);
+                          }
+                        },
+                        icon: const Icon(Icons.upload_rounded, size: 16),
+                        label: Text(
+                          imageUrl != null && imageUrl.isNotEmpty
+                              ? 'Change Image'
+                              : 'Upload Image',
+                          style: GoogleFonts.inter(fontSize: 13),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: primaryColor,
+                          side: const BorderSide(color: primaryColor),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                        ),
+                      ),
+                    const Spacer(),
+                    if ((imageUrl != null && imageUrl.isNotEmpty) ||
+                        pickedBytes != null)
+                      IconButton(
+                        onPressed: () {
+                          onBytesPicked(null);
+                          onUrlChanged(null);
+                        },
+                        icon: const Icon(Icons.delete_outline_rounded,
+                            color: dangerColor, size: 20),
+                        tooltip: 'Remove image',
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   // ==================== ADD UPDATE DIALOG ====================
   void _showAddUpdateDialog(BuildContext context) {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
-    final imageUrlController = TextEditingController();
     final targetAudienceController = TextEditingController();
     final authorController = TextEditingController();
     final linkController = TextEditingController();
@@ -348,6 +498,9 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
     String selectedStatus = 'Published';
     String selectedPriority = 'Normal';
     DateTime? scheduledDate;
+    String? uploadedImageUrl;
+    Uint8List? pickedImageBytes;
+    bool isUploadingImage = false;
 
     showDialog(
       context: context,
@@ -402,11 +555,19 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                             : null),
                     const SizedBox(height: 16),
 
-                    // Image URL
-                    _fieldLabel('Image URL'),
-                    const SizedBox(height: 6),
-                    _buildTextField(
-                        imageUrlController, 'https://example.com/image.jpg'),
+                    // Image upload
+                    _buildImagePicker(
+                      imageUrl: uploadedImageUrl,
+                      pickedBytes: pickedImageBytes,
+                      isUploading: isUploadingImage,
+                      setDialogState: setDialogState,
+                      onBytesPicked: (bytes) =>
+                          setDialogState(() => pickedImageBytes = bytes),
+                      onUrlChanged: (url) =>
+                          setDialogState(() => uploadedImageUrl = url),
+                      onUploadingChanged: (v) =>
+                          setDialogState(() => isUploadingImage = v),
+                    ),
                     const SizedBox(height: 16),
 
                     // Row: Category + Status
@@ -582,9 +743,11 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                       'isActive': selectedStatus == 'Published',
                     };
 
-                    // Optional fields - only add if non-empty
-                    final imageUrl = imageUrlController.text.trim();
-                    if (imageUrl.isNotEmpty) data['imageUrl'] = imageUrl;
+                    // Optional fields
+                    if (uploadedImageUrl != null &&
+                        uploadedImageUrl!.isNotEmpty) {
+                      data['imageUrl'] = uploadedImageUrl;
+                    }
 
                     final targetAudience = targetAudienceController.text.trim();
                     if (targetAudience.isNotEmpty) {
@@ -628,8 +791,6 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
     final titleController = TextEditingController(text: data['title'] ?? '');
     final descriptionController =
         TextEditingController(text: data['description'] ?? '');
-    final imageUrlController =
-        TextEditingController(text: data['imageUrl'] ?? '');
     final targetAudienceController =
         TextEditingController(text: data['targetAudience'] ?? '');
     final authorController = TextEditingController(text: data['author'] ?? '');
@@ -642,6 +803,9 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
     if (data['publishDate'] is Timestamp) {
       scheduledDate = (data['publishDate'] as Timestamp).toDate();
     }
+    String? uploadedImageUrl = data['imageUrl'] as String?;
+    Uint8List? pickedImageBytes;
+    bool isUploadingImage = false;
 
     showDialog(
       context: context,
@@ -692,10 +856,18 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                             ? 'Description is required'
                             : null),
                     const SizedBox(height: 16),
-                    _fieldLabel('Image URL'),
-                    const SizedBox(height: 6),
-                    _buildTextField(
-                        imageUrlController, 'https://example.com/image.jpg'),
+                    _buildImagePicker(
+                      imageUrl: uploadedImageUrl,
+                      pickedBytes: pickedImageBytes,
+                      isUploading: isUploadingImage,
+                      setDialogState: setDialogState,
+                      onBytesPicked: (bytes) =>
+                          setDialogState(() => pickedImageBytes = bytes),
+                      onUrlChanged: (url) =>
+                          setDialogState(() => uploadedImageUrl = url),
+                      onUploadingChanged: (v) =>
+                          setDialogState(() => isUploadingImage = v),
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -862,9 +1034,11 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                       'isActive': selectedStatus == 'Published',
                     };
 
-                    final imageUrl = imageUrlController.text.trim();
                     updateData['imageUrl'] =
-                        imageUrl.isNotEmpty ? imageUrl : null;
+                        (uploadedImageUrl != null &&
+                                uploadedImageUrl!.isNotEmpty)
+                            ? uploadedImageUrl
+                            : null;
 
                     final targetAudience = targetAudienceController.text.trim();
                     updateData['targetAudience'] =
