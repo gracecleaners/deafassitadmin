@@ -1,8 +1,8 @@
 import 'package:admin/screens/main/main_screen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../const/app_colors.dart';
+import '../../constants.dart';
 import '../../utils/form_validator.dart';
 import 'authService.dart';
 
@@ -16,177 +16,264 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final AuthService _auth = AuthService();
   bool _isObscure = true;
+  bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController forgotPasswordEmailController =
-  TextEditingController();
 
   void _signIn(String email, String password) async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    setState(() => _isLoading = true);
     try {
       AuthService authService = AuthService();
       String? role = await authService.signInAndFetchRole(email, password);
 
       if (role != null) {
         if (role == 'admin') {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => MainScreen()),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("There is no such user"))
+            SnackBar(
+              content: const Text("Access denied. Admin accounts only."),
+              backgroundColor: dangerColor,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
           );
         }
       } else {
-        // Handle missing role scenario
-        print("Role not found for user.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("User not found."),
+            backgroundColor: dangerColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
       }
     } catch (e) {
-      print("Error: $e");
-      // Show error to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login failed: ${e.toString().replaceAll('Exception: ', '')}"),
+          backgroundColor: dangerColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ht = MediaQuery.of(context).size.height;
-    final wd = MediaQuery.of(context).size.width;
-
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Text(
-                    'ADMINISTRATOR',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
-                  ),
+      backgroundColor: bgColor,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo area
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  gradient: sidebarGradient,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                Container(
-                  width: wd * 0.45, // Adjusted width to be 85% of screen width
-                  constraints: BoxConstraints(maxHeight: ht * 0.5), // Limited height to 50% of screen
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.all(Radius.circular(25)),
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: const Text(
-                              "Welcome",
-                              style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.white
-                              ),
+                child: const Icon(Icons.sign_language, color: Colors.white, size: 36),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Deaf Assist',
+                style: GoogleFonts.inter(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: darkTextColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Admin Dashboard',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: bodyTextColor,
+                ),
+              ),
+              const SizedBox(height: 40),
+              // Login Card
+              Container(
+                width: 420,
+                padding: const EdgeInsets.all(36),
+                decoration: BoxDecoration(
+                  color: secondaryColor,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Welcome back",
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: darkTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Enter your credentials to access the admin panel",
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: bodyTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      // Email
+                      Text(
+                        "Email",
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: darkTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: emailController,
+                        style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.email_outlined, color: bodyTextColor.withOpacity(0.5), size: 20),
+                          hintText: 'admin@example.com',
+                          hintStyle: GoogleFonts.inter(color: bodyTextColor.withOpacity(0.4)),
+                          fillColor: bgColor,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: borderColor),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: borderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: primaryColor, width: 2),
+                          ),
+                        ),
+                        validator: FormValidator.validateEmail,
+                      ),
+                      const SizedBox(height: 20),
+                      // Password
+                      Text(
+                        "Password",
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: darkTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: passwordController,
+                        style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+                        obscureText: _isObscure,
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              color: bodyTextColor.withOpacity(0.5),
+                              size: 20,
+                            ),
+                            onPressed: () => setState(() => _isObscure = !_isObscure),
+                          ),
+                          prefixIcon: Icon(Icons.lock_outline, color: bodyTextColor.withOpacity(0.5), size: 20),
+                          hintText: 'Enter your password',
+                          hintStyle: GoogleFonts.inter(color: bodyTextColor.withOpacity(0.4)),
+                          fillColor: bgColor,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: borderColor),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: borderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: primaryColor, width: 2),
+                          ),
+                        ),
+                        validator: FormValidator.validatePassword,
+                      ),
+                      const SizedBox(height: 28),
+                      // Login Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          const SizedBox(height: 20.0),
-                          _buildEmailField(),
-                          const SizedBox(height: 20.0),
-                          _buildPasswordField(),
-                          const SizedBox(height: 24.0),
-                          _buildLoginButton(context),
-                        ],
+                          onPressed: _isLoading ? null : () => _signIn(emailController.text, passwordController.text),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 22, height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  "Sign In",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                "© 2026 Deaf Assist. All rights reserved.",
+                style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor.withOpacity(0.5)),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
-  Widget _buildEmailField() {
-    return TextFormField(
-      controller: emailController,
-      style: TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.email),
-        hintText: 'Email',
-        filled: true,
-        fillColor: AppColors.backgroundColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      validator: FormValidator.validateEmail,
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: passwordController,
-      style: TextStyle(color: Colors.black),
-      obscureText: _isObscure,
-      decoration: InputDecoration(
-        suffixIcon: IconButton(
-          icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
-          onPressed: () {
-            setState(() {
-              _isObscure = !_isObscure;
-            });
-          },
-        ),
-        prefixIcon: const Icon(Icons.lock),
-        hintText: 'Password',
-        filled: true,
-        fillColor: AppColors.backgroundColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      validator: FormValidator.validatePassword,
-    );
-  }
-
-  Widget _buildLoginButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.buttonColor,
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-        onPressed: () {
-          // _loginController.signIn(
-          //   context,
-          //   emailController.text,
-          //   passwordController.text,
-          //   _formKey,
-          // );
-          _signIn(emailController.text, passwordController.text);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: const Text(
-            "LOGIN",
-            style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
-          ),
-        ),
-      ),
-    );
-  }
-
 }
