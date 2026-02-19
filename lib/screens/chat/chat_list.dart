@@ -103,7 +103,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ],
             )
           : null,
-      drawer: Responsive.isDesktop(context) ? null : const Drawer(child: SideMenu()),
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

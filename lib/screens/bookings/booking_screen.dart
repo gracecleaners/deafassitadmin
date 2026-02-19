@@ -6,6 +6,7 @@ import 'package:admin/screens/dashboard/components/header.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class BookingListScreen extends StatefulWidget {
@@ -65,12 +66,12 @@ class _BookingListScreenState extends State<BookingListScreen> {
       allBookings.sort((a, b) {
         final dateA = _getDateTimeFromField(a.data['bookingDate']);
         final dateB = _getDateTimeFromField(b.data['bookingDate']);
-        
+
         // Handle null dates by putting them at the end
         if (dateA == null && dateB == null) return 0;
         if (dateA == null) return 1;
         if (dateB == null) return -1;
-        
+
         // Sort in descending order (latest first)
         return dateB.compareTo(dateA);
       });
@@ -106,7 +107,9 @@ class _BookingListScreenState extends State<BookingListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideMenu(),
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _fetchAllBookings,
@@ -145,9 +148,7 @@ class _BookingListScreenState extends State<BookingListScreen> {
       child: Row(
         children: [
           if (Responsive.isDesktop(context))
-                Expanded(
-                  child: SideMenu(),
-                ),
+            const SizedBox(width: 260, child: SideMenu()),
           Expanded(
             flex: 5,
             child: SafeArea(
