@@ -288,16 +288,17 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      drawer: SideMenu(),
+      drawer: Responsive.isDesktop(context) ? null : const Drawer(child: SideMenu()),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Side menu for desktop
             if (Responsive.isDesktop(context))
-              Expanded(
-                flex: 1, // Takes 1/6 part of the screen
+              const SizedBox(
+                width: 260,
                 child: SideMenu(),
+              ),
               ),
             // Main chat area
             Expanded(

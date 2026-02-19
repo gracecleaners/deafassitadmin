@@ -63,93 +63,99 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     return Scaffold(
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          :
-
-      SafeArea(
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children:[
-              if (Responsive.isDesktop(context))
-                const SizedBox(width: 260, child: SideMenu()),
-              Expanded(
-                flex: 5,
-                child: SafeArea(
-                  child: SingleChildScrollView(
-                    primary: false,
-                    padding: EdgeInsets.all(defaultPadding),
-                    child: Column(
-                      children: [
-                        Header(title: '',),
-                        SizedBox(height: defaultPadding),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 5,
-                              child: SizedBox(
-                                height: MediaQuery.of(context).size.height - 200,
-                                child:       Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Center(
-                                        child: CircleAvatar(
-                                          radius: 50,
-                                          backgroundImage: AssetImage('assets/images/profile_pic.png'),
-                                        ),
+          : SafeArea(
+              child:
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (Responsive.isDesktop(context))
+                  const SizedBox(width: 260, child: SideMenu()),
+                Expanded(
+                  flex: 5,
+                  child: SafeArea(
+                    child: SingleChildScrollView(
+                      primary: false,
+                      padding: EdgeInsets.all(defaultPadding),
+                      child: Column(
+                        children: [
+                          Header(
+                            title: '',
+                          ),
+                          SizedBox(height: defaultPadding),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: SizedBox(
+                                    height: MediaQuery.of(context).size.height -
+                                        200,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Center(
+                                            child: CircleAvatar(
+                                              radius: 50,
+                                              backgroundImage: AssetImage(
+                                                  'assets/images/profile_pic.png'),
+                                            ),
+                                          ),
+                                          SizedBox(height: 24),
+                                          Text(
+                                            'Personal Information',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge,
+                                          ),
+                                          SizedBox(height: 16),
+                                          TextField(
+                                            controller: _nameController,
+                                            decoration: InputDecoration(
+                                              labelText: 'Name',
+                                              border: OutlineInputBorder(),
+                                            ),
+                                            readOnly: true,
+                                          ),
+                                          SizedBox(height: 16),
+                                          TextField(
+                                            controller: _emailController,
+                                            decoration: InputDecoration(
+                                              labelText: 'Email',
+                                              border: OutlineInputBorder(),
+                                            ),
+                                            readOnly: true,
+                                          ),
+                                          SizedBox(height: 24),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              minimumSize:
+                                                  Size(double.infinity, 50),
+                                            ),
+                                            onPressed: () {
+                                              // Sign out functionality
+                                              FirebaseAuth.instance.signOut();
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          LoginPage()));
+                                            },
+                                            child: Text('Sign Out'),
+                                          ),
+                                        ],
                                       ),
-                                      SizedBox(height: 24),
-                                      Text(
-                                        'Personal Information',
-                                        style: Theme.of(context).textTheme.titleLarge,
-                                      ),
-                                      SizedBox(height: 16),
-                                      TextField(
-                                        controller: _nameController,
-                                        decoration: InputDecoration(
-                                          labelText: 'Name',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        readOnly: true,
-                                      ),
-                                      SizedBox(height: 16),
-                                      TextField(
-                                        controller: _emailController,
-                                        decoration: InputDecoration(
-                                          labelText: 'Email',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        readOnly: true,
-                                      ),
-                                      SizedBox(height: 24),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          minimumSize: Size(double.infinity, 50),
-                                        ),
-                                        onPressed: () {
-                                          // Sign out functionality
-                                          FirebaseAuth.instance.signOut();
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-                                        },
-                                        child: Text('Sign Out'),
-                                      ),
-                                    ],
-                                  ),
-                                )
+                                    )),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ]
-        ),
-      ),
-
+              ]),
+            ),
     );
   }
 

@@ -14,7 +14,9 @@ class AdminNotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Responsive.isDesktop(context) ? null : const Drawer(child: SideMenu()),
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: SafeArea(
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (Responsive.isDesktop(context))

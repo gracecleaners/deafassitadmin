@@ -118,7 +118,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Responsive.isDesktop(context) ? null : const Drawer(child: SideMenu()),
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: SafeArea(
           child: Row(
         children: [
