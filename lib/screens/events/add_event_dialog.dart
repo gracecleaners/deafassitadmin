@@ -1,9 +1,11 @@
 import 'dart:html' as html;
 import 'dart:typed_data';
+import 'package:admin/constants.dart';
 import 'package:admin/models/event.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class AddEventDialog extends StatefulWidget {
@@ -247,180 +249,332 @@ Future<void> _saveEvent() async {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.event == null ? "Create Event" : "Edit Event"),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: "Title",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.title),
-                ),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? "Title is required" : null,
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: "Description (optional)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description),
-                ),
-                maxLines: 3,
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _selectDate(context, true),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: "Start Date",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.calendar_today),
-                        ),
-                        child: Text(DateFormat('MMM dd, yyyy').format(_startDate)),
-                      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+                widget.event == null
+                    ? Icons.event_rounded
+                    : Icons.edit_rounded,
+                color: primaryColor,
+                size: 20),
+          ),
+          const SizedBox(width: 12),
+          Text(widget.event == null ? "Create Event" : "Edit Event",
+              style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: darkTextColor)),
+        ],
+      ),
+      content: SizedBox(
+        width: 500,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _eventField("Title", "Enter event title", _titleController,
+                    Icons.title_rounded,
+                    validator: (v) =>
+                        v?.isEmpty ?? true ? "Title is required" : null),
+                const SizedBox(height: 14),
+                _eventField("Description (optional)", "Enter description",
+                    _descriptionController, Icons.description_outlined,
+                    maxLines: 3),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _datePickerField(
+                          "Start Date", _startDate, () => _selectDate(context, true)),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _datePickerField(
+                          "End Date", _endDate, () => _selectDate(context, false)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _eventField("Location (optional)", "Enter location",
+                    _locationController, Icons.location_on_rounded),
+                const SizedBox(height: 14),
+                Text('Event Image',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: darkTextColor)),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 130,
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      border: Border.all(color: borderColor),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: _selectedImageBytes != null ||
+                            (widget.event != null &&
+                                widget.event!.imageUrl != null)
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _selectedImageBytes != null
+                                    ? ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                        child: Image.memory(
+                                            _selectedImageBytes!,
+                                            height: 80,
+                                            fit: BoxFit.cover))
+                                    : ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                        child: Image.network(
+                                            widget.event!.imageUrl!,
+                                            height: 80,
+                                            fit: BoxFit.cover)),
+                                if (_selectedImageName != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(_selectedImageName!,
+                                        style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            color: bodyTextColor)),
+                                  ),
+                              ],
+                            ),
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.cloud_upload_outlined,
+                                    size: 32, color: bodyTextColor),
+                                const SizedBox(height: 6),
+                                Text("Click to select image (optional)",
+                                    style: GoogleFonts.inter(
+                                        fontSize: 13, color: bodyTextColor)),
+                              ],
+                            ),
+                          ),
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _selectDate(context, false),
-                      child: InputDecorator(
+                ),
+                const SizedBox(height: 14),
+                _eventField("Category (optional)", "e.g., Workshop",
+                    _categoryController, Icons.category_rounded),
+                const SizedBox(height: 14),
+                Text('Tags',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: darkTextColor)),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _tagsController,
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: darkTextColor),
                         decoration: InputDecoration(
-                          labelText: "End Date",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.calendar_today),
+                          hintText: "Add a tag",
+                          hintStyle: GoogleFonts.inter(
+                              fontSize: 13, color: bodyTextColor),
+                          prefixIcon: const Icon(Icons.tag_rounded,
+                              size: 18, color: bodyTextColor),
+                          fillColor: bgColor,
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  const BorderSide(color: borderColor)),
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  const BorderSide(color: borderColor)),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  const BorderSide(color: primaryColor)),
                         ),
-                        child: Text(DateFormat('MMM dd, yyyy').format(_endDate)),
+                        onSubmitted: (value) => _addTag(),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_rounded,
+                          color: primaryColor),
+                      onPressed: _addTag,
+                    ),
+                  ],
+                ),
+                if (_tags.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: _tags.asMap().entries.map((entry) {
+                      return Chip(
+                        label: Text(entry.value,
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: primaryColor)),
+                        deleteIcon: const Icon(Icons.close,
+                            size: 14, color: primaryColor),
+                        onDeleted: () => _removeTag(entry.key),
+                        backgroundColor: primaryColor.withOpacity(0.1),
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      );
+                    }).toList(),
                   ),
                 ],
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  labelText: "Location (optional)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-              ),
-              SizedBox(height: 16),
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 150,
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: borderColor),
                   ),
-                  child: _selectedImageBytes != null || (widget.event != null && widget.event!.imageUrl != null)
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _selectedImageBytes != null
-                                  ? Image.memory(_selectedImageBytes!, height: 100)
-                                  : Image.network(widget.event!.imageUrl!, height: 100),
-                              if (_selectedImageName != null)
-                                Text(
-                                  _selectedImageName!,
-                                  textAlign: TextAlign.center,
-                                ),
-                            ],
-                          ),
-                        )
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.image, size: 40),
-                              Text("Click to select event image (optional)"),
-                            ],
-                          ),
-                        ),
-                ),
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _categoryController,
-                decoration: InputDecoration(
-                  labelText: "Category (optional)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.category),
-                ),
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _tagsController,
-                      decoration: InputDecoration(
-                        labelText: "Add Tag",
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.tag),
-                      ),
-                      onFieldSubmitted: (value) => _addTag(),
-                    ),
+                  child: SwitchListTile(
+                    title: Text("Featured Event",
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: darkTextColor)),
+                    value: _isFeatured,
+                    activeColor: primaryColor,
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (value) {
+                      setState(() {
+                        _isFeatured = value;
+                      });
+                    },
                   ),
-                  SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(Icons.add_circle),
-                    onPressed: _addTag,
-                    color: Theme.of(context).primaryColor,
+                ),
+                if (_isUploading) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: const LinearProgressIndicator(
+                        color: primaryColor,
+                        backgroundColor: bgColor,
+                        minHeight: 3),
                   ),
                 ],
-              ),
-              SizedBox(height: 8),
-              if (_tags.isNotEmpty) ...[
-                Wrap(
-                  spacing: 8,
-                  children: _tags.asMap().entries.map((entry) {
-                    return Chip(
-                      label: Text(entry.value),
-                      deleteIcon: Icon(Icons.close, size: 16),
-                      onDeleted: () => _removeTag(entry.key),
-                    );
-                  }).toList(),
-                ),
-                SizedBox(height: 16),
               ],
-              SwitchListTile(
-                title: Text("Featured Event"),
-                value: _isFeatured,
-                onChanged: (value) {
-                  setState(() {
-                    _isFeatured = value;
-                  });
-                },
-              ),
-              if (_isUploading) LinearProgressIndicator(),
-            ],
+            ),
           ),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text("Cancel"),
+          child:
+              Text("Cancel", style: GoogleFonts.inter(color: bodyTextColor)),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            elevation: 0,
+          ),
           onPressed: _saveEvent,
-          child: Text(widget.event == null ? "Create" : "Update"),
+          child: Text(widget.event == null ? "Create" : "Update",
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
         ),
       ],
     );
   }
-}
+
+  Widget _eventField(String label, String hint,
+      TextEditingController controller, IconData icon,
+      {String? Function(String?)? validator, int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: darkTextColor)),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          maxLines: maxLines,
+          validator: validator,
+          style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
+            prefixIcon: Icon(icon, size: 18, color: bodyTextColor),
+            fillColor: bgColor,
+            filled: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: primaryColor)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _datePickerField(String label, DateTime date, VoidCallback onTap) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: darkTextColor)),
+        const SizedBox(height: 6),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: borderColor),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today_rounded,
+                    size: 16, color: bodyTextColor),
+                const SizedBox(width: 8),
+                Text(DateFormat('MMM dd, yyyy').format(date),
+                    style: GoogleFonts.inter(
+                        fontSize: 14, color: darkTextColor)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
