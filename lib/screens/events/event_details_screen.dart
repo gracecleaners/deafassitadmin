@@ -14,15 +14,15 @@ class EventDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideMenu(),
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (Responsive.isDesktop(context))
-              Expanded(
-                child: SideMenu(),
-              ),
+              const SizedBox(width: 260, child: SideMenu()),
             Expanded(
               flex: 5,
               child: EventDetailsScreen(
@@ -70,11 +70,13 @@ class EventDetailsScreen extends StatelessWidget {
                                   maxHeight: double.infinity,
                                 ),
                                 child: AspectRatio(
-                                  aspectRatio: 3/4, // Adjust this ratio as needed
+                                  aspectRatio:
+                                      3 / 4, // Adjust this ratio as needed
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
                                     child: Image.network(
-                                      event.imageUrl ?? 'https://via.placeholder.com/400',
+                                      event.imageUrl ??
+                                          'https://via.placeholder.com/400',
                                       width: double.infinity,
                                       fit: BoxFit.cover,
                                     ),
@@ -140,7 +142,7 @@ class EventDetailsScreen extends StatelessWidget {
                     builder: (context) => AddEventDialog(event: event),
                   ),
                 );
-                
+
                 if (updatedEvent != null) {
                   Navigator.pushReplacement(
                     context,
@@ -207,9 +209,8 @@ class EventDetailsScreen extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: event.tags!
-                    .map((tag) => Chip(label: Text(tag)))
-                    .toList(),
+                children:
+                    event.tags!.map((tag) => Chip(label: Text(tag))).toList(),
               ),
               SizedBox(height: 24),
             ],

@@ -64,7 +64,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
 
       // Sign out the newly-created user (Firebase auto-signs-in new accounts)
       // and re-authenticate as admin if needed
-      if (adminUser != null && FirebaseAuth.instance.currentUser?.uid != adminUser.uid) {
+      if (adminUser != null &&
+          FirebaseAuth.instance.currentUser?.uid != adminUser.uid) {
         // The admin session may have been replaced – sign out the new user
         await FirebaseAuth.instance.signOut();
         // Note: admin needs to sign in again or use admin SDK in production
@@ -87,7 +88,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
             ),
             backgroundColor: successColor,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             duration: const Duration(seconds: 4),
           ),
         );
@@ -104,12 +106,15 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Error: ${e.toString()}', style: GoogleFonts.inter(fontSize: 13))),
+                Expanded(
+                    child: Text('Error: ${e.toString()}',
+                        style: GoogleFonts.inter(fontSize: 13))),
               ],
             ),
             backgroundColor: dangerColor,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -117,7 +122,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
   }
 
   String _generateTempPassword() {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%';
     final rng = Random.secure();
     return List.generate(16, (_) => chars[rng.nextInt(chars.length)]).join();
   }
@@ -154,11 +160,14 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     return interpreters;
   }
 
-  Future<void> _startChatWithInterpreter(BuildContext context, Interpreter interpreter) async {
+  Future<void> _startChatWithInterpreter(
+      BuildContext context, Interpreter interpreter) async {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     if (currentUserId == null || interpreter.uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to start chat.'), backgroundColor: dangerColor),
+        SnackBar(
+            content: Text('Unable to start chat.'),
+            backgroundColor: dangerColor),
       );
       return;
     }
@@ -172,9 +181,12 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: cardShadow,
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: cardShadow,
               ),
-              child: const CircularProgressIndicator(color: primaryColor, strokeWidth: 3),
+              child: const CircularProgressIndicator(
+                  color: primaryColor, strokeWidth: 3),
             ),
           );
         },
@@ -211,14 +223,17 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
           builder: (context) => ChatScreen(
             chatId: existingChatId!,
             recipientId: interpreter.uid!,
-            recipientName: interpreter.name ?? interpreter.email ?? 'Interpreter',
+            recipientName:
+                interpreter.name ?? interpreter.email ?? 'Interpreter',
           ),
         ),
       );
     } catch (e) {
       if (Navigator.canPop(context)) Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error starting chat: ${e.toString()}'), backgroundColor: dangerColor),
+        SnackBar(
+            content: Text('Error starting chat: ${e.toString()}'),
+            backgroundColor: dangerColor),
       );
     }
   }
@@ -242,7 +257,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                       color: primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.interpreter_mode_rounded, color: primaryColor, size: 20),
+                    child: const Icon(Icons.interpreter_mode_rounded,
+                        color: primaryColor, size: 20),
                   ),
                   const SizedBox(width: 12),
                   FutureBuilder<List<Interpreter>>(
@@ -254,11 +270,15 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                         children: [
                           Text(
                             "All Interpreters",
-                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: darkTextColor),
+                            style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: darkTextColor),
                           ),
                           Text(
                             "$count total",
-                            style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor),
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: bodyTextColor),
                           ),
                         ],
                       );
@@ -275,9 +295,12 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.refresh_rounded, color: bodyTextColor, size: 20),
+                      icon: const Icon(Icons.refresh_rounded,
+                          color: bodyTextColor, size: 20),
                       onPressed: () {
-                        setState(() { _futureInterpreters = fetchInterpreters(); });
+                        setState(() {
+                          _futureInterpreters = fetchInterpreters();
+                        });
                       },
                       tooltip: 'Refresh',
                     ),
@@ -290,13 +313,17 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                       elevation: 0,
                       padding: EdgeInsets.symmetric(
                         horizontal: defaultPadding * 1.5,
-                        vertical: defaultPadding / (Responsive.isMobile(context) ? 2 : 1),
+                        vertical: defaultPadding /
+                            (Responsive.isMobile(context) ? 2 : 1),
                       ),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () => _showSignupDialog(context),
                     icon: const Icon(Icons.person_add_rounded, size: 18),
-                    label: Text("Add Interpreter", style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13)),
+                    label: Text("Add Interpreter",
+                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600, fontSize: 13)),
                   ),
                 ],
               ),
@@ -320,7 +347,9 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Padding(
                           padding: EdgeInsets.all(48),
-                          child: Center(child: CircularProgressIndicator(color: primaryColor, strokeWidth: 2)),
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  color: primaryColor, strokeWidth: 2)),
                         );
                       } else if (snapshot.hasError) {
                         return Padding(
@@ -328,11 +357,17 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                           child: Center(
                             child: Column(
                               children: [
-                                Icon(Icons.error_outline, color: dangerColor, size: 40),
+                                Icon(Icons.error_outline,
+                                    color: dangerColor, size: 40),
                                 const SizedBox(height: 12),
-                                Text('Error loading interpreters', style: GoogleFonts.inter(color: darkTextColor, fontWeight: FontWeight.w500)),
+                                Text('Error loading interpreters',
+                                    style: GoogleFonts.inter(
+                                        color: darkTextColor,
+                                        fontWeight: FontWeight.w500)),
                                 const SizedBox(height: 4),
-                                Text('${snapshot.error}', style: GoogleFonts.inter(color: bodyTextColor, fontSize: 12)),
+                                Text('${snapshot.error}',
+                                    style: GoogleFonts.inter(
+                                        color: bodyTextColor, fontSize: 12)),
                               ],
                             ),
                           ),
@@ -349,12 +384,20 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                                     color: primaryColor.withOpacity(0.1),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.people_outline, color: primaryColor, size: 36),
+                                  child: const Icon(Icons.people_outline,
+                                      color: primaryColor, size: 36),
                                 ),
                                 const SizedBox(height: 16),
-                                Text('No interpreters yet', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: darkTextColor)),
+                                Text('No interpreters yet',
+                                    style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: darkTextColor)),
                                 const SizedBox(height: 4),
-                                Text('Add your first interpreter to get started', style: GoogleFonts.inter(fontSize: 13, color: bodyTextColor)),
+                                Text(
+                                    'Add your first interpreter to get started',
+                                    style: GoogleFonts.inter(
+                                        fontSize: 13, color: bodyTextColor)),
                               ],
                             ),
                           ),
@@ -370,16 +413,59 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                           dataRowMinHeight: 56,
                           dataRowMaxHeight: 56,
                           columns: [
-                            DataColumn(label: Text("Name", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
-                            DataColumn(label: Text("Email", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
-                            DataColumn(label: Text("Region", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
-                            DataColumn(label: Text("District", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
-                            DataColumn(label: Text("Employer", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
-                            DataColumn(label: Text("Contact", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
-                            DataColumn(label: Text("Experience", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
-                            DataColumn(label: Text("Actions", style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: bodyTextColor, fontSize: 13))),
+                            DataColumn(
+                                label: Text("Name",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
+                            DataColumn(
+                                label: Text("Email",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
+                            DataColumn(
+                                label: Text("Region",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
+                            DataColumn(
+                                label: Text("District",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
+                            DataColumn(
+                                label: Text("Employer",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
+                            DataColumn(
+                                label: Text("Contact",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
+                            DataColumn(
+                                label: Text("Experience",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
+                            DataColumn(
+                                label: Text("Actions",
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: bodyTextColor,
+                                        fontSize: 13))),
                           ],
-                          rows: interpreters.map((interpreter) => _buildDataRow(context, interpreter)).toList(),
+                          rows: interpreters
+                              .map((interpreter) =>
+                                  _buildDataRow(context, interpreter))
+                              .toList(),
                         ),
                       );
                     },
@@ -404,15 +490,21 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                 backgroundColor: primaryColor.withOpacity(0.1),
                 child: Text(
                   (interpreterInfo.name ?? 'U')[0].toUpperCase(),
-                  style: GoogleFonts.inter(color: primaryColor, fontWeight: FontWeight.w600, fontSize: 13),
+                  style: GoogleFonts.inter(
+                      color: primaryColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13),
                 ),
               ),
               const SizedBox(width: 10),
-              Text(interpreterInfo.name ?? '', style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: darkTextColor)),
+              Text(interpreterInfo.name ?? '',
+                  style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w500, color: darkTextColor)),
             ],
           ),
         ),
-        DataCell(Text(interpreterInfo.email ?? '', style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
+        DataCell(Text(interpreterInfo.email ?? '',
+            style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
         DataCell(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -420,13 +512,21 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
               color: primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(interpreterInfo.region ?? '', style: GoogleFonts.inter(color: primaryColor, fontWeight: FontWeight.w500, fontSize: 12)),
+            child: Text(interpreterInfo.region ?? '',
+                style: GoogleFonts.inter(
+                    color: primaryColor,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12)),
           ),
         ),
-        DataCell(Text(interpreterInfo.district ?? '', style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
-        DataCell(Text(interpreterInfo.currentEmployer ?? '', style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
-        DataCell(Text(interpreterInfo.contact ?? '', style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
-        DataCell(Text(interpreterInfo.yearsOfExperience ?? '', style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
+        DataCell(Text(interpreterInfo.district ?? '',
+            style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
+        DataCell(Text(interpreterInfo.currentEmployer ?? '',
+            style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
+        DataCell(Text(interpreterInfo.contact ?? '',
+            style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
+        DataCell(Text(interpreterInfo.yearsOfExperience ?? '',
+            style: GoogleFonts.inter(color: darkTextColor, fontSize: 13))),
         DataCell(
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -439,9 +539,12 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.chat_bubble_outline_rounded, color: primaryColor, size: 18),
-                    onPressed: () => _startChatWithInterpreter(context, interpreterInfo),
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    icon: const Icon(Icons.chat_bubble_outline_rounded,
+                        color: primaryColor, size: 18),
+                    onPressed: () =>
+                        _startChatWithInterpreter(context, interpreterInfo),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                     padding: const EdgeInsets.all(6),
                   ),
                 ),
@@ -455,9 +558,12 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.lock_reset_rounded, color: warningColor, size: 18),
-                    onPressed: () => _sendPasswordResetEmail(context, interpreterInfo.email ?? ''),
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    icon: const Icon(Icons.lock_reset_rounded,
+                        color: warningColor, size: 18),
+                    onPressed: () => _sendPasswordResetEmail(
+                        context, interpreterInfo.email ?? ''),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                     padding: const EdgeInsets.all(6),
                   ),
                 ),
@@ -469,7 +575,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     );
   }
 
-  Future<void> _sendPasswordResetEmail(BuildContext context, String email) async {
+  Future<void> _sendPasswordResetEmail(
+      BuildContext context, String email) async {
     if (email.isEmpty) return;
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
@@ -480,12 +587,15 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
               children: [
                 const Icon(Icons.email_outlined, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Password reset link sent to $email', style: GoogleFonts.inter(fontSize: 13))),
+                Expanded(
+                    child: Text('Password reset link sent to $email',
+                        style: GoogleFonts.inter(fontSize: 13))),
               ],
             ),
             backgroundColor: successColor,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -496,7 +606,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
             content: Text('Error sending reset link: ${e.toString()}'),
             backgroundColor: dangerColor,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -520,7 +631,8 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               backgroundColor: secondaryColor,
               child: Container(
                 width: 500,
@@ -541,25 +653,33 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                                 color: primaryColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(Icons.person_add_rounded, color: primaryColor, size: 22),
+                              child: const Icon(Icons.person_add_rounded,
+                                  color: primaryColor, size: 22),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Add Interpreter', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: darkTextColor)),
+                                  Text('Add Interpreter',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: darkTextColor)),
                                   const SizedBox(height: 2),
                                   Text(
                                     'A password reset link will be sent to their email',
-                                    style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor),
+                                    style: GoogleFonts.inter(
+                                        fontSize: 12, color: bodyTextColor),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close, color: bodyTextColor, size: 20),
-                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              icon: const Icon(Icons.close,
+                                  color: bodyTextColor, size: 20),
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(),
                             ),
                           ],
                         ),
@@ -570,16 +690,19 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                           decoration: BoxDecoration(
                             color: infoColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: infoColor.withOpacity(0.3)),
+                            border:
+                                Border.all(color: infoColor.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.info_outline, color: infoColor, size: 18),
+                              const Icon(Icons.info_outline,
+                                  color: infoColor, size: 18),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   'The interpreter will receive an email with a link to set their password and access the platform.',
-                                  style: GoogleFonts.inter(fontSize: 12, color: darkTextColor),
+                                  style: GoogleFonts.inter(
+                                      fontSize: 12, color: darkTextColor),
                                 ),
                               ),
                             ],
@@ -587,63 +710,97 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
                         ),
                         const SizedBox(height: 20),
                         // Form fields
-                        _buildDialogField('Full Name', nameController, Icons.person_outline, validator: (v) => v == null || v.isEmpty ? 'Required' : null),
-                        _buildDialogField('Email Address', emailController, Icons.email_outlined,
-                          validator: (v) => v == null || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v) ? 'Valid email required' : null),
-                        _buildDialogDropdown('Region', selectedRegion, ['Northern', 'Central', 'Western', 'Eastern'],
-                          onChanged: (v) => setDialogState(() => selectedRegion = v!)),
-                        _buildDialogField('District', districtController, Icons.location_on_outlined),
-                        _buildDialogField('Current Employer', employerController, Icons.business_outlined),
-                        _buildDialogField('Phone Contact', contactController, Icons.phone_outlined, keyboardType: TextInputType.phone),
-                        _buildDialogField('Years of Experience', experienceController, Icons.timeline_outlined, keyboardType: TextInputType.number),
+                        _buildDialogField(
+                            'Full Name', nameController, Icons.person_outline,
+                            validator: (v) =>
+                                v == null || v.isEmpty ? 'Required' : null),
+                        _buildDialogField('Email Address', emailController,
+                            Icons.email_outlined,
+                            validator: (v) => v == null ||
+                                    !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)
+                                ? 'Valid email required'
+                                : null),
+                        _buildDialogDropdown('Region', selectedRegion,
+                            ['Northern', 'Central', 'Western', 'Eastern'],
+                            onChanged: (v) =>
+                                setDialogState(() => selectedRegion = v!)),
+                        _buildDialogField('District', districtController,
+                            Icons.location_on_outlined),
+                        _buildDialogField('Current Employer',
+                            employerController, Icons.business_outlined),
+                        _buildDialogField('Phone Contact', contactController,
+                            Icons.phone_outlined,
+                            keyboardType: TextInputType.phone),
+                        _buildDialogField('Years of Experience',
+                            experienceController, Icons.timeline_outlined,
+                            keyboardType: TextInputType.number),
                         const SizedBox(height: 24),
                         // Buttons
                         Row(
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () => Navigator.of(dialogContext).pop(),
+                                onPressed: () =>
+                                    Navigator.of(dialogContext).pop(),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: bodyTextColor,
                                   side: const BorderSide(color: borderColor),
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
                                 ),
-                                child: Text('Cancel', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                                child: Text('Cancel',
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w500)),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               flex: 2,
                               child: ElevatedButton.icon(
-                                onPressed: isSubmitting ? null : () async {
-                                  if (formKey.currentState!.validate()) {
-                                    setDialogState(() => isSubmitting = true);
-                                    await signupUser(
-                                      context,
-                                      emailController.text.trim(),
-                                      nameController.text.trim(),
-                                      districtController.text.trim(),
-                                      employerController.text.trim(),
-                                      contactController.text.trim(),
-                                      experienceController.text.trim(),
-                                      selectedRegion,
-                                    );
-                                    Navigator.of(dialogContext).pop();
-                                  }
-                                },
+                                onPressed: isSubmitting
+                                    ? null
+                                    : () async {
+                                        if (formKey.currentState!.validate()) {
+                                          setDialogState(
+                                              () => isSubmitting = true);
+                                          await signupUser(
+                                            context,
+                                            emailController.text.trim(),
+                                            nameController.text.trim(),
+                                            districtController.text.trim(),
+                                            employerController.text.trim(),
+                                            contactController.text.trim(),
+                                            experienceController.text.trim(),
+                                            selectedRegion,
+                                          );
+                                          Navigator.of(dialogContext).pop();
+                                        }
+                                      },
                                 icon: isSubmitting
-                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white))
                                     : const Icon(Icons.send_rounded, size: 18),
                                 label: Text(
-                                  isSubmitting ? 'Adding...' : 'Add & Send Link',
-                                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+                                  isSubmitting
+                                      ? 'Adding...'
+                                      : 'Add & Send Link',
+                                  style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13),
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: primaryColor,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
                                   elevation: 0,
                                 ),
                               ),
@@ -674,23 +831,38 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: darkTextColor)),
+          Text(label,
+              style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: darkTextColor)),
           const SizedBox(height: 6),
           TextFormField(
             controller: controller,
             keyboardType: keyboardType,
             style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, size: 18, color: bodyTextColor.withOpacity(0.5)),
+              prefixIcon:
+                  Icon(icon, size: 18, color: bodyTextColor.withOpacity(0.5)),
               hintText: 'Enter $label',
-              hintStyle: GoogleFonts.inter(fontSize: 13, color: bodyTextColor.withOpacity(0.4)),
+              hintStyle: GoogleFonts.inter(
+                  fontSize: 13, color: bodyTextColor.withOpacity(0.4)),
               fillColor: bgColor,
               filled: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: borderColor)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: borderColor)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: primaryColor, width: 2)),
-              errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: dangerColor)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: borderColor)),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: borderColor)),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: primaryColor, width: 2)),
+              errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: dangerColor)),
             ),
             validator: validator,
           ),
@@ -699,27 +871,43 @@ class _AddInterpreterWidgetState extends State<AddInterpreterWidget> {
     );
   }
 
-  Widget _buildDialogDropdown(String label, String value, List<String> items, {required ValueChanged<String?> onChanged}) {
+  Widget _buildDialogDropdown(String label, String value, List<String> items,
+      {required ValueChanged<String?> onChanged}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: darkTextColor)),
+          Text(label,
+              style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: darkTextColor)),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             value: value,
             style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
             decoration: InputDecoration(
-              prefixIcon: Icon(Icons.map_outlined, size: 18, color: bodyTextColor.withOpacity(0.5)),
+              prefixIcon: Icon(Icons.map_outlined,
+                  size: 18, color: bodyTextColor.withOpacity(0.5)),
               fillColor: bgColor,
               filled: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: borderColor)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: borderColor)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: primaryColor, width: 2)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: borderColor)),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: borderColor)),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: primaryColor, width: 2)),
             ),
-            items: items.map((String v) => DropdownMenuItem<String>(value: v, child: Text(v))).toList(),
+            items: items
+                .map((String v) =>
+                    DropdownMenuItem<String>(value: v, child: Text(v)))
+                .toList(),
             onChanged: onChanged,
           ),
         ],
