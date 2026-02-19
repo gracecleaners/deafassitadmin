@@ -419,6 +419,17 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   });
 
                   await FirebaseFirestore.instance
+                      .collection('user_notifications')
+                      .add({
+                    'userId': userId,
+                    'title': 'Payment Request',
+                    'message':
+                        'Payment request for your booking (ID: ${widget.bookingId}). Check chat for details.',
+                    'timestamp': FieldValue.serverTimestamp(),
+                    'read': false,
+                  });
+
+                  await FirebaseFirestore.instance
                       .collection('users')
                       .doc(userId)
                       .update({
@@ -729,7 +740,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     );
   }
 
-  // Updated _updateStatus method with better debugging
   Future<void> _updateStatus(String newStatus) async {
     try {
       setState(() => _isUpdating = true);
@@ -742,102 +752,171 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      if (newStatus == 'confirmed') {
-        final userId = _bookingData!['userId'] as String?;
+      final userId = _bookingData!['userId'] as String?;
+      final interpreterId = _bookingData!['interpreterId'] as String?;
+      final userName = _bookingData!['userName'] as String? ??
+          _relatedData['userName'] ??
+          'User';
+      final interpreterName = _relatedData['interpreterName'] ?? 'Interpreter';
+      final bookingType = widget.collectionName == 'online_interpretations'
+          ? 'Online Interpretation'
+          : 'In-Person Booking';
+
+      // Notify deaf user on confirm/decline
+      if (newStatus == 'confirmed' || newStatus == 'declined') {
         if (userId != null) {
+          final title = newStatus == 'confirmed'
+              ? 'Booking Confirmed'
+              : 'Booking Declined';
+          final message = newStatus == 'confirmed'
+              ? 'Your $bookingType with $interpreterName has been confirmed by the admin.'
+              : 'Your $bookingType with $interpreterName has been declined by the admin.';
+
+          // Write to notifications collection
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': userId,
+            'title': title,
+            'message': message,
+            'bookingId': widget.bookingId,
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'type': 'booking_$newStatus',
+          });
+
+          // Write to user_notifications collection
+          await FirebaseFirestore.instance
+              .collection('user_notifications')
+              .add({
+            'userId': userId,
+            'title': title,
+            'message': message,
+            'bookingId': widget.bookingId,
+            'timestamp': FieldValue.serverTimestamp(),
+            'read': false,
+            'type': 'booking_$newStatus',
+          });
+
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .update({
+            'unreadNotifications': FieldValue.increment(1),
+          });
+
+          // Send chat message
           try {
             final chatService = ChatService();
             await chatService.sendMessage(
               receiverId: userId,
               content:
-                  'Your booking (ID: ${widget.bookingId}) has been confirmed.',
+                  'Your $bookingType (ID: ${widget.bookingId}) has been ${newStatus}.',
             );
           } catch (e) {
-            print('Error sending confirmation notification: $e');
+            print('Error sending chat notification: $e');
           }
+        }
+
+        // Also notify interpreter
+        if (interpreterId != null) {
+          final interpTitle = newStatus == 'confirmed'
+              ? 'Booking Confirmed by Admin'
+              : 'Booking Declined by Admin';
+          final interpMessage = newStatus == 'confirmed'
+              ? 'The $bookingType with $userName has been confirmed by the admin.'
+              : 'The $bookingType with $userName has been declined by the admin.';
+
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': interpreterId,
+            'title': interpTitle,
+            'message': interpMessage,
+            'bookingId': widget.bookingId,
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'type': 'booking_$newStatus',
+          });
+
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(interpreterId)
+              .update({
+            'unreadNotifications': FieldValue.increment(1),
+          });
         }
       }
 
-      // UPDATED: Send notification to interpreter when marking in-person booking as completed
-      if (newStatus == 'completed' &&
-          widget.collectionName == 'interpreter_bookings') {
-        final interpreterId = _bookingData!['interpreterId'] as String?;
-
-        print('DEBUG: Creating notification for interpreterId: $interpreterId');
-        print('DEBUG: BookingId: ${widget.bookingId}');
-
+      // Notify both parties when marking as completed
+      if (newStatus == 'completed') {
         if (interpreterId != null) {
-          try {
-            // Create the notification data
-            final notificationData = {
-              'userId': interpreterId,
-              'title': 'Booking Completed - Payment Received',
-              'message':
-                  'Payment has been received for your booking (ID: ${widget.bookingId}). The booking is now completed.',
-              'bookingId': widget.bookingId,
-              'bookingType': 'in-person',
-              'timestamp': FieldValue.serverTimestamp(),
-              'isRead': false, // Make sure this is explicitly false
-              'type': 'booking_completed',
-            };
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': interpreterId,
+            'title': 'Booking Completed - Payment Received',
+            'message':
+                'Payment has been received for your booking (ID: ${widget.bookingId}). The booking is now completed.',
+            'bookingId': widget.bookingId,
+            'bookingType': widget.collectionName == 'interpreter_bookings'
+                ? 'in-person'
+                : 'online',
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'type': 'booking_completed',
+          });
 
-            print('DEBUG: Notification data being sent: $notificationData');
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(interpreterId)
+              .update({
+            'unreadNotifications': FieldValue.increment(1),
+          });
+        }
 
-            // Send notification to interpreter
-            final docRef = await FirebaseFirestore.instance
-                .collection('notifications')
-                .add(notificationData);
+        if (userId != null) {
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': userId,
+            'title': 'Booking Completed',
+            'message':
+                'Your $bookingType (ID: ${widget.bookingId}) has been marked as completed.',
+            'bookingId': widget.bookingId,
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'type': 'booking_completed',
+          });
 
-            print('DEBUG: Notification created with ID: ${docRef.id}');
+          await FirebaseFirestore.instance
+              .collection('user_notifications')
+              .add({
+            'userId': userId,
+            'title': 'Booking Completed',
+            'message':
+                'Your $bookingType (ID: ${widget.bookingId}) has been marked as completed.',
+            'bookingId': widget.bookingId,
+            'timestamp': FieldValue.serverTimestamp(),
+            'read': false,
+            'type': 'booking_completed',
+          });
 
-            // Verify the notification was created correctly
-            final createdNotification = await docRef.get();
-            print(
-                'DEBUG: Created notification data: ${createdNotification.data()}');
-
-            // Update interpreter's unread notifications count
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(interpreterId)
-                .update({
-              'unreadNotifications': FieldValue.increment(1),
-              'hasCompletedBookings': true,
-            });
-
-            print(
-                'DEBUG: Notification successfully sent to interpreter: $interpreterId');
-
-            // Additional verification - query for the notification
-            final verificationQuery = await FirebaseFirestore.instance
-                .collection('notifications')
-                .where('userId', isEqualTo: interpreterId)
-                .where('type', isEqualTo: 'booking_completed')
-                .where('isRead', isEqualTo: false)
-                .get();
-
-            print(
-                'DEBUG: Verification query found ${verificationQuery.docs.length} unread booking_completed notifications');
-          } catch (e) {
-            print(
-                'ERROR: Failed to send completion notification to interpreter: $e');
-            print('ERROR: Stack trace: ${StackTrace.current}');
-          }
-        } else {
-          print('DEBUG: No interpreterId found in booking data');
-          print('DEBUG: Booking data: $_bookingData');
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .update({
+            'unreadNotifications': FieldValue.increment(1),
+          });
         }
       }
 
       await _loadBookingData();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Status updated to $newStatus')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Status updated to $newStatus')),
+        );
+      }
     } catch (e) {
-      print('ERROR: Failed to update status: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating status: $e')),
-      );
+      print('Error updating status: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating status: $e')),
+        );
+      }
     } finally {
       setState(() => _isUpdating = false);
     }

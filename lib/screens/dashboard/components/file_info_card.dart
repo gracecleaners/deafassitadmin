@@ -2,7 +2,6 @@ import 'package:admin/constants.dart';
 import 'package:admin/models/my_files.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FileInfoCard extends StatefulWidget {
@@ -56,7 +55,7 @@ class _FileInfoCardState extends State<FileInfoCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(defaultPadding * 1.25),
+      padding: const EdgeInsets.all(defaultPadding),
       decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,17 +65,17 @@ class _FileInfoCardState extends State<FileInfoCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
-                height: 44,
-                width: 44,
+                padding: const EdgeInsets.all(8),
+                height: 40,
+                width: 40,
                 decoration: BoxDecoration(
                   color: widget.info.color!.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: SvgPicture.asset(
-                  widget.info.svgSrc!,
-                  colorFilter: ColorFilter.mode(
-                      widget.info.color ?? Colors.black, BlendMode.srcIn),
+                child: Icon(
+                  widget.info.icon,
+                  color: widget.info.color,
+                  size: 22,
                 ),
               ),
               Container(
@@ -86,26 +85,24 @@ class _FileInfoCardState extends State<FileInfoCard> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Icon(Icons.more_horiz,
-                    color: bodyTextColor, size: 18),
+                    color: bodyTextColor, size: 16),
               ),
             ],
           ),
-          const SizedBox(height: 12),
           Text(
             widget.info.title!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.inter(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: bodyTextColor,
             ),
           ),
-          const SizedBox(height: 4),
           _isLoading
               ? SizedBox(
-                  width: 24,
-                  height: 24,
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     color: widget.info.color,
@@ -114,12 +111,11 @@ class _FileInfoCardState extends State<FileInfoCard> {
               : Text(
                   _count.toString(),
                   style: GoogleFonts.inter(
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: darkTextColor,
                   ),
                 ),
-          const SizedBox(height: 8),
           ProgressLine(
             color: widget.info.color,
             percentage: widget.info.percentage,
