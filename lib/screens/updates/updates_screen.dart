@@ -39,6 +39,26 @@ class UpdatesListScreen extends StatefulWidget {
 
 class _UpdatesListScreenState extends State<UpdatesListScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String _filterStatus = 'All';
+
+  static const List<String> _statusOptions = [
+    'Draft',
+    'Published',
+    'Scheduled',
+    'Archived',
+  ];
+
+  static const List<String> _categoryOptions = [
+    'General',
+    'Event',
+    'Course',
+    'Service',
+    'Announcement',
+    'News',
+    'Alert',
+  ];
+
+  static const List<String> _priorityOptions = ['Low', 'Normal', 'High'];
 
   @override
   Widget build(BuildContext context) {
@@ -61,40 +81,61 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                "Manage updates that are displayed on the mobile app",
+                "Manage updates displayed on the mobile app",
                 style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
               ),
               const SizedBox(height: defaultPadding),
-              // Add Update Button
+              // Action Bar
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 decoration: cardDecoration,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.campaign_rounded,
-                              color: primaryColor, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          "All Updates",
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: darkTextColor,
-                          ),
-                        ),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.campaign_rounded,
+                          color: primaryColor, size: 20),
                     ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "All Updates",
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: darkTextColor,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Filter dropdown
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _filterStatus,
+                          icon: const Icon(Icons.filter_list_rounded,
+                              size: 18, color: bodyTextColor),
+                          style: GoogleFonts.inter(
+                              fontSize: 13, color: darkTextColor),
+                          items: ['All', ..._statusOptions]
+                              .map((s) =>
+                                  DropdownMenuItem(value: s, child: Text(s)))
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _filterStatus = v ?? 'All'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     ElevatedButton.icon(
                       onPressed: () => _showAddUpdateDialog(context),
                       icon: const Icon(Icons.add_rounded, size: 18),
@@ -141,15 +182,24 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                             const Icon(Icons.error_outline,
                                 color: dangerColor, size: 48),
                             const SizedBox(height: 12),
-                            Text('Error loading updates',
-                                style: GoogleFonts.inter(color: bodyTextColor)),
+                            Text('Error loading updates: ${snapshot.error}',
+                                style:
+                                    GoogleFonts.inter(color: bodyTextColor)),
                           ],
                         ),
                       ),
                     );
                   }
 
-                  final updates = snapshot.data?.docs ?? [];
+                  var updates = snapshot.data?.docs ?? [];
+
+                  // Client-side filter by status
+                  if (_filterStatus != 'All') {
+                    updates = updates.where((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      return data['status'] == _filterStatus;
+                    }).toList();
+                  }
 
                   if (updates.isEmpty) {
                     return Center(
@@ -162,7 +212,9 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                                 size: 64),
                             const SizedBox(height: 16),
                             Text(
-                              'No updates yet',
+                              _filterStatus == 'All'
+                                  ? 'No updates yet'
+                                  : 'No $_filterStatus updates',
                               style: GoogleFonts.inter(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
@@ -208,11 +260,96 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
     );
   }
 
+  // ==================== HELPER WIDGETS ====================
+  Widget _fieldLabel(String label) {
+    return Text(label,
+        style: GoogleFonts.inter(
+            fontSize: 13, fontWeight: FontWeight.w600, color: darkTextColor));
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint,
+      {int maxLines = 1, String? Function(String?)? validator}) {
+    return TextFormField(
+      controller: controller,
+      style: GoogleFonts.inter(fontSize: 14),
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.inter(color: bodyTextColor),
+        fillColor: bgColor,
+        filled: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: borderColor)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: borderColor)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: primaryColor)),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildDropdown(
+      String value, List<String> items, ValueChanged<String?> onChanged) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+      decoration: InputDecoration(
+        fillColor: bgColor,
+        filled: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: borderColor)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: borderColor)),
+      ),
+      items: items
+          .map((c) => DropdownMenuItem(
+              value: c,
+              child: Text(c, style: GoogleFonts.inter(fontSize: 14))))
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  void _showSuccessSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(message, style: GoogleFonts.inter()),
+          ],
+        ),
+        backgroundColor: successColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  // ==================== ADD UPDATE DIALOG ====================
   void _showAddUpdateDialog(BuildContext context) {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
+    final imageUrlController = TextEditingController();
+    final targetAudienceController = TextEditingController();
+    final authorController = TextEditingController();
+    final linkController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     String selectedCategory = 'General';
+    String selectedStatus = 'Published';
+    String selectedPriority = 'Normal';
+    DateTime? scheduledDate;
 
     showDialog(
       context: context,
@@ -240,112 +377,183 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
             ],
           ),
           content: SizedBox(
-            width: 500,
+            width: 600,
             child: Form(
               key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Title',
-                      style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: darkTextColor)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: titleController,
-                    style: GoogleFonts.inter(fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: 'Enter update title',
-                      hintStyle: GoogleFonts.inter(color: bodyTextColor),
-                      fillColor: bgColor,
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: primaryColor)),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title (required)
+                    _fieldLabel('Title *'),
+                    const SizedBox(height: 6),
+                    _buildTextField(titleController, 'Enter update title',
+                        validator: (v) =>
+                            v?.isEmpty ?? true ? 'Title is required' : null),
+                    const SizedBox(height: 16),
+
+                    // Description (required)
+                    _fieldLabel('Description *'),
+                    const SizedBox(height: 6),
+                    _buildTextField(
+                        descriptionController, 'Enter update description',
+                        maxLines: 4,
+                        validator: (v) => v?.isEmpty ?? true
+                            ? 'Description is required'
+                            : null),
+                    const SizedBox(height: 16),
+
+                    // Image URL
+                    _fieldLabel('Image URL'),
+                    const SizedBox(height: 6),
+                    _buildTextField(
+                        imageUrlController, 'https://example.com/image.jpg'),
+                    const SizedBox(height: 16),
+
+                    // Row: Category + Status
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Category'),
+                              const SizedBox(height: 6),
+                              _buildDropdown(
+                                  selectedCategory, _categoryOptions, (v) {
+                                setDialogState(() => selectedCategory = v!);
+                              }),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Status'),
+                              const SizedBox(height: 6),
+                              _buildDropdown(
+                                  selectedStatus, _statusOptions, (v) {
+                                setDialogState(() => selectedStatus = v!);
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    validator: (v) =>
-                        v?.isEmpty ?? true ? 'Title is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Description',
-                      style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: darkTextColor)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: descriptionController,
-                    style: GoogleFonts.inter(fontSize: 14),
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Enter update description',
-                      hintStyle: GoogleFonts.inter(color: bodyTextColor),
-                      fillColor: bgColor,
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: primaryColor)),
+                    const SizedBox(height: 16),
+
+                    // Row: Priority + Publish Date
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Priority'),
+                              const SizedBox(height: 6),
+                              _buildDropdown(
+                                  selectedPriority, _priorityOptions, (v) {
+                                setDialogState(() => selectedPriority = v!);
+                              }),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Publish Date'),
+                              const SizedBox(height: 6),
+                              InkWell(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate:
+                                        scheduledDate ?? DateTime.now(),
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime(2030),
+                                  );
+                                  if (picked != null) {
+                                    setDialogState(
+                                        () => scheduledDate = picked);
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 13),
+                                  decoration: BoxDecoration(
+                                    color: bgColor,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          scheduledDate != null
+                                              ? DateFormat('MMM d, yyyy')
+                                                  .format(scheduledDate!)
+                                              : 'Select date',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color: scheduledDate != null
+                                                ? darkTextColor
+                                                : bodyTextColor,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(Icons.calendar_today_rounded,
+                                          size: 16, color: bodyTextColor),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    validator: (v) =>
-                        v?.isEmpty ?? true ? 'Description is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Category',
-                      style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: darkTextColor)),
-                  const SizedBox(height: 6),
-                  DropdownButtonFormField<String>(
-                    value: selectedCategory,
-                    style:
-                        GoogleFonts.inter(fontSize: 14, color: darkTextColor),
-                    decoration: InputDecoration(
-                      fillColor: bgColor,
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
+                    const SizedBox(height: 16),
+
+                    // Target Audience
+                    _fieldLabel('Target Audience'),
+                    const SizedBox(height: 6),
+                    _buildTextField(
+                        targetAudienceController, 'e.g. Deaf Community, All'),
+                    const SizedBox(height: 16),
+
+                    // Row: Author + Link
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Author'),
+                              const SizedBox(height: 6),
+                              _buildTextField(authorController, 'Author name'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Link / URL'),
+                              const SizedBox(height: 6),
+                              _buildTextField(linkController, 'https://...'),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    items: [
-                      'General',
-                      'Event',
-                      'Course',
-                      'Service',
-                      'Announcement'
-                    ]
-                        .map((c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(c,
-                                style: GoogleFonts.inter(fontSize: 14))))
-                        .toList(),
-                    onChanged: (v) =>
-                        setDialogState(() => selectedCategory = v!),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -366,37 +574,47 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   try {
-                    await _firestore.collection('latest_updates').add({
+                    final data = <String, dynamic>{
                       'title': titleController.text.trim(),
                       'description': descriptionController.text.trim(),
                       'category': selectedCategory,
+                      'status': selectedStatus,
+                      'priority': selectedPriority,
                       'createdAt': FieldValue.serverTimestamp(),
-                      'isActive': true,
-                    });
+                      'isActive': selectedStatus == 'Published',
+                    };
+
+                    // Optional fields - only add if non-empty
+                    final imageUrl = imageUrlController.text.trim();
+                    if (imageUrl.isNotEmpty) data['imageUrl'] = imageUrl;
+
+                    final targetAudience =
+                        targetAudienceController.text.trim();
+                    if (targetAudience.isNotEmpty) {
+                      data['targetAudience'] = targetAudience;
+                    }
+
+                    final author = authorController.text.trim();
+                    if (author.isNotEmpty) data['author'] = author;
+
+                    final link = linkController.text.trim();
+                    if (link.isNotEmpty) data['link'] = link;
+
+                    if (scheduledDate != null) {
+                      data['publishDate'] =
+                          Timestamp.fromDate(scheduledDate!);
+                    }
+
+                    await _firestore
+                        .collection('latest_updates')
+                        .add(data);
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(Icons.check_circle,
-                                color: Colors.white, size: 18),
-                            const SizedBox(width: 8),
-                            Text('Update added successfully',
-                                style: GoogleFonts.inter()),
-                          ],
-                        ),
-                        backgroundColor: successColor,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                    );
+                    _showSuccessSnackbar(context, 'Update added successfully');
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: dangerColor,
-                      ),
+                          content: Text('Error: $e'),
+                          backgroundColor: dangerColor),
                     );
                   }
                 }
