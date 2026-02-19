@@ -156,10 +156,16 @@ class CourseCard extends StatelessWidget {
                                 course.imageUrl!,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return Container(color: bgColor, child: const Icon(Icons.image, size: 50, color: bodyTextColor));
+                                  return Container(
+                                      color: bgColor,
+                                      child: const Icon(Icons.image,
+                                          size: 50, color: bodyTextColor));
                                 },
                               )
-                            : Container(color: bgColor, child: const Icon(Icons.image, size: 50, color: bodyTextColor)),
+                            : Container(
+                                color: bgColor,
+                                child: const Icon(Icons.image,
+                                    size: 50, color: bodyTextColor)),
                       ),
                       Expanded(
                         child: Padding(
@@ -169,14 +175,18 @@ class CourseCard extends StatelessWidget {
                             children: [
                               Text(
                                 course.name ?? 'Untitled Course',
-                                style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: darkTextColor),
+                                style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: darkTextColor),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 course.instructor ?? 'Unknown Instructor',
-                                style: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
+                                style: GoogleFonts.inter(
+                                    fontSize: 13, color: bodyTextColor),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                               ),
@@ -187,16 +197,23 @@ class CourseCard extends StatelessWidget {
                                 children: [
                                   Text(
                                     '${course.rating?.toStringAsFixed(1) ?? "0.0"}',
-                                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.amber[700]),
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.amber[700]),
                                   ),
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: List.generate(5, (index) {
                                       final rating = course.rating ?? 0;
-                                      final isHalf = rating - index > 0 && rating - index < 1;
+                                      final isHalf = rating - index > 0 &&
+                                          rating - index < 1;
                                       final isFull = rating - index >= 1;
                                       return Icon(
-                                        isFull ? Icons.star : isHalf ? Icons.star_half : Icons.star_border,
+                                        isFull
+                                            ? Icons.star
+                                            : isHalf
+                                                ? Icons.star_half
+                                                : Icons.star_border,
                                         size: 14,
                                         color: Colors.amber[700],
                                       );
@@ -207,7 +224,10 @@ class CourseCard extends StatelessWidget {
                               const Spacer(),
                               Text(
                                 '\$${course.price?.toStringAsFixed(2) ?? "0.00"}',
-                                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: darkTextColor),
+                                style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: darkTextColor),
                               ),
                             ],
                           ),
