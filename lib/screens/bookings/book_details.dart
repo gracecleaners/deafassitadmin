@@ -404,6 +404,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       'amount': amountController.text,
                       'requestSentAt': FieldValue.serverTimestamp(),
                     },
+                    'paymentAmount': amountController.text,
+                    'paymentMethod': 'Mobile Money',
+                    'paymentStatus': 'Pending',
                     'timestamp': FieldValue.serverTimestamp(),
                   });
 

@@ -69,20 +69,27 @@ class Message {
 
   static MessageType _parseMessageType(dynamic type) {
     if (type == null) return MessageType.text;
-    
+
     // Handle integer values (from mobile app)
     if (type is int) {
       switch (type) {
-        case 0: return MessageType.text;
-        case 1: return MessageType.image;
-        case 2: return MessageType.meetingLink;
-        case 3: return MessageType.file;
-        case 4: return MessageType.audio;
-        case 5: return MessageType.video;
-        default: return MessageType.text;
+        case 0:
+          return MessageType.text;
+        case 1:
+          return MessageType.image;
+        case 2:
+          return MessageType.meetingLink;
+        case 3:
+          return MessageType.file;
+        case 4:
+          return MessageType.audio;
+        case 5:
+          return MessageType.video;
+        default:
+          return MessageType.text;
       }
     }
-    
+
     final typeString = type.toString().toLowerCase();
     switch (typeString) {
       case 'text':
