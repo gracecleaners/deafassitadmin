@@ -3,6 +3,7 @@ import 'package:admin/models/my_files.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FileInfoCard extends StatefulWidget {
   const FileInfoCard({
@@ -55,11 +56,8 @@ class _FileInfoCardState extends State<FileInfoCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
-      decoration: BoxDecoration(
-        color: secondaryColor,
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
-      ),
+      padding: const EdgeInsets.all(defaultPadding * 1.25),
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -68,12 +66,12 @@ class _FileInfoCardState extends State<FileInfoCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: EdgeInsets.all(defaultPadding * 0.75),
-                height: 40,
-                width: 40,
+                padding: const EdgeInsets.all(10),
+                height: 44,
+                width: 44,
                 decoration: BoxDecoration(
                   color: widget.info.color!.withOpacity(0.1),
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: SvgPicture.asset(
                   widget.info.svgSrc!,
@@ -81,40 +79,51 @@ class _FileInfoCardState extends State<FileInfoCard> {
                       widget.info.color ?? Colors.black, BlendMode.srcIn),
                 ),
               ),
-              Icon(Icons.more_vert, color: Colors.white54)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.more_horiz,
+                    color: bodyTextColor, size: 18),
+              ),
             ],
           ),
+          const SizedBox(height: 12),
           Text(
             widget.info.title!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: bodyTextColor,
+            ),
           ),
+          const SizedBox(height: 4),
+          _isLoading
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: widget.info.color,
+                  ),
+                )
+              : Text(
+                  _count.toString(),
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: darkTextColor,
+                  ),
+                ),
+          const SizedBox(height: 8),
           ProgressLine(
             color: widget.info.color,
             percentage: widget.info.percentage,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(),
-              _isLoading
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: widget.info.color,
-                      ),
-                    )
-                  : Text(
-                      _count.toString(),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall!
-                          .copyWith(color: Colors.white),
-                    ),
-            ],
-          )
         ],
       ),
     );
@@ -137,19 +146,19 @@ class ProgressLine extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          height: 5,
+          height: 6,
           decoration: BoxDecoration(
             color: color!.withOpacity(0.1),
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
           ),
         ),
         LayoutBuilder(
           builder: (context, constraints) => Container(
             width: constraints.maxWidth * (percentage! / 100),
-            height: 5,
+            height: 6,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.all(Radius.circular(10)),
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
             ),
           ),
         ),
