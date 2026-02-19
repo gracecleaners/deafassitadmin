@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../constants.dart';
 
 class RecentFiles extends StatefulWidget {
@@ -23,29 +24,27 @@ class _RecentFilesState extends State<RecentFiles> {
   Future<void> _fetchUserData() async {
     try {
       final usersSnapshot = await _firestore.collection('users').get();
-      
-      // Initialize region data with explicit types
       final regions = ['Central', 'Eastern', 'Northern', 'Western'];
-      final tempData = regions.map((region) => <String, dynamic>{
-        'id': regions.indexOf(region).toString(),
-        'region': region,
-        'interpreters': 0, // Explicitly typed as int
-        'deaf': 0,        // Explicitly typed as int
-      }).toList();
+      final tempData = regions
+          .map((region) => <String, dynamic>{
+                'id': regions.indexOf(region).toString(),
+                'region': region,
+                'interpreters': 0,
+                'deaf': 0,
+              })
+          .toList();
 
-      // Count users by region and role
       for (final doc in usersSnapshot.docs) {
         final data = doc.data();
         final region = data['region']?.toString() ?? 'Unknown';
         final role = data['role']?.toString().toLowerCase() ?? 'unknown';
-
         final regionIndex = regions.indexOf(region);
         if (regionIndex != -1) {
           if (role == 'interpreter') {
-            tempData[regionIndex]['interpreters'] = 
+            tempData[regionIndex]['interpreters'] =
                 (tempData[regionIndex]['interpreters'] as int) + 1;
           } else if (role == 'deaf') {
-            tempData[regionIndex]['deaf'] = 
+            tempData[regionIndex]['deaf'] =
                 (tempData[regionIndex]['deaf'] as int) + 1;
           }
         }
@@ -61,45 +60,155 @@ class _RecentFilesState extends State<RecentFiles> {
     }
   }
 
+  final List<Color> _regionColors = [
+    primaryColor,
+    successColor,
+    warningColor,
+    dangerColor
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
-      decoration: BoxDecoration(
-        color: secondaryColor,
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
-      ),
+      padding: const EdgeInsets.all(defaultPadding * 1.5),
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "User Locations",
-            style: Theme.of(context).textTheme.titleMedium,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "User Distribution",
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: darkTextColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Users across regions of Uganda",
+                    style:
+                        GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
+                  ),
+                ],
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "All Regions",
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+            ],
           ),
-          Text(
-            "Distribution of users around Uganda",
-            style: TextStyle(color: Colors.grey.withOpacity(0.5)),
-          ),
+          const SizedBox(height: defaultPadding),
           SizedBox(
             width: double.infinity,
             child: _isLoading
-                ? Center(child: CircularProgressIndicator())
-                : DataTable(
-                    columnSpacing: defaultPadding,
-                    columns: [
-                      DataColumn(label: Text("ID")),
-                      DataColumn(label: Text("Region")),
-                      DataColumn(label: Text("Interpreters")),
-                      DataColumn(label: Text("Deaf Users")),
-                    ],
-                    rows: _regionData.map((data) => DataRow(
-                      cells: [
-                        DataCell(Text(data['id'].toString())),
-                        DataCell(Text(data['region'])),
-                        DataCell(Text(data['interpreters'].toString())),
-                        DataCell(Text(data['deaf'].toString())),
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: CircularProgressIndicator(
+                          color: primaryColor, strokeWidth: 2),
+                    ),
+                  )
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: DataTable(
+                      columnSpacing: defaultPadding,
+                      headingRowHeight: 48,
+                      dataRowMinHeight: 52,
+                      dataRowMaxHeight: 52,
+                      columns: [
+                        DataColumn(
+                            label: Text("Region",
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600,
+                                    color: bodyTextColor,
+                                    fontSize: 13))),
+                        DataColumn(
+                            label: Text("Interpreters",
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600,
+                                    color: bodyTextColor,
+                                    fontSize: 13))),
+                        DataColumn(
+                            label: Text("Deaf Users",
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600,
+                                    color: bodyTextColor,
+                                    fontSize: 13))),
+                        DataColumn(
+                            label: Text("Total",
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600,
+                                    color: bodyTextColor,
+                                    fontSize: 13))),
                       ],
-                    )).toList(),
+                      rows: _regionData.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final data = entry.value;
+                        final total = (data['interpreters'] as int) +
+                            (data['deaf'] as int);
+                        return DataRow(
+                          cells: [
+                            DataCell(Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: _regionColors[i],
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(data['region'],
+                                    style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w500,
+                                        color: darkTextColor)),
+                              ],
+                            )),
+                            DataCell(Text(data['interpreters'].toString(),
+                                style:
+                                    GoogleFonts.inter(color: darkTextColor))),
+                            DataCell(Text(data['deaf'].toString(),
+                                style:
+                                    GoogleFonts.inter(color: darkTextColor))),
+                            DataCell(
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _regionColors[i].withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  total.toString(),
+                                  style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                      color: _regionColors[i]),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
           ),
         ],
