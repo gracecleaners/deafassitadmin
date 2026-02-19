@@ -23,26 +23,95 @@ void main() async {
 }  
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Admin Panel',
-      theme: ThemeData.dark().copyWith(
+      title: 'Deaf Assist Admin',
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primaryColor: primaryColor,
         scaffoldBackgroundColor: bgColor,
-        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
-            .apply(bodyColor: Colors.white),
-        canvasColor: secondaryColor,
+        colorScheme: ColorScheme.light(
+          primary: primaryColor,
+          secondary: primaryColor,
+          surface: secondaryColor,
+        ),
+        textTheme: GoogleFonts.interTextTheme(
+          ThemeData.light().textTheme,
+        ).copyWith(
+          headlineLarge: GoogleFonts.inter(
+            fontSize: 28, fontWeight: FontWeight.w700, color: darkTextColor,
+          ),
+          headlineMedium: GoogleFonts.inter(
+            fontSize: 24, fontWeight: FontWeight.w600, color: darkTextColor,
+          ),
+          titleLarge: GoogleFonts.inter(
+            fontSize: 20, fontWeight: FontWeight.w600, color: darkTextColor,
+          ),
+          titleMedium: GoogleFonts.inter(
+            fontSize: 16, fontWeight: FontWeight.w600, color: darkTextColor,
+          ),
+          bodyLarge: GoogleFonts.inter(fontSize: 16, color: bodyTextColor),
+          bodyMedium: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
+          bodySmall: GoogleFonts.inter(fontSize: 12, color: bodyTextColor),
+        ),
+        cardTheme: CardTheme(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: secondaryColor,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: bgColor,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: borderColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: primaryColor, width: 2),
+          ),
+          hintStyle: GoogleFonts.inter(color: bodyTextColor.withOpacity(0.5)),
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: secondaryColor,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: darkTextColor),
+          titleTextStyle: GoogleFonts.inter(
+            fontSize: 20, fontWeight: FontWeight.w600, color: darkTextColor,
+          ),
+        ),
+        dividerTheme: const DividerThemeData(color: borderColor, thickness: 1),
+        dataTableTheme: DataTableThemeData(
+          headingTextStyle: GoogleFonts.inter(
+            fontSize: 13, fontWeight: FontWeight.w600, color: bodyTextColor,
+          ),
+          dataTextStyle: GoogleFonts.inter(fontSize: 13, color: darkTextColor),
+          headingRowColor: WidgetStateProperty.all(bgColor),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
       home: MultiProvider(
         providers: [
-          ChangeNotifierProvider(
-            create: (context) => MenuAppController(),
-          ),
+          ChangeNotifierProvider(create: (context) => MenuAppController()),
         ],
         child: LoginPage(),
-        // child: ImageUploadWidget(),
       ),
     );
   }
