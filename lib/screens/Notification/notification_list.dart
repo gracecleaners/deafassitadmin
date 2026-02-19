@@ -15,6 +15,7 @@ class AdminNotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bgColor,
       drawer: Responsive.isDesktop(context)
           ? null
           : const Drawer(child: SideMenu()),
@@ -27,208 +28,109 @@ class AdminNotificationsScreen extends StatelessWidget {
             child: SafeArea(
               child: SingleChildScrollView(
                 primary: false,
-                padding: EdgeInsets.all(defaultPadding),
+                padding: EdgeInsets.all(defaultPadding * 1.5),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Header(
-                      title: '',
+                    Header(title: ''),
+                    SizedBox(height: defaultPadding),
+                    Text(
+                      "Notifications",
+                      style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: darkTextColor),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Manage interpretation requests and bookings",
+                      style: GoogleFonts.inter(
+                          fontSize: 14, color: bodyTextColor),
                     ),
                     SizedBox(height: defaultPadding),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 5,
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.height - 200,
-                            child: Card(
-                              elevation: 4,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Notifications',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge,
+                    Container(
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height - 250,
+                      ),
+                      decoration: cardDecoration,
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('admin_notifications')
+                                .orderBy('timestamp', descending: true)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: Padding(
+                                  padding: EdgeInsets.all(40),
+                                  child: CircularProgressIndicator(
+                                      color: primaryColor, strokeWidth: 2),
+                                ));
+                              }
+
+                              if (!snapshot.hasData ||
+                                  snapshot.data!.docs.isEmpty) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(40),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                primaryColor.withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                              Icons.notifications_none_rounded,
+                                              size: 40,
+                                              color: primaryColor),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text('No notifications yet',
+                                            style: GoogleFonts.inter(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                                color: bodyTextColor)),
+                                      ],
                                     ),
-                                    SizedBox(height: 16),
-                                    Expanded(
-                                      child: StreamBuilder<QuerySnapshot>(
-                                        stream: FirebaseFirestore.instance
-                                            .collection('admin_notifications')
-                                            .orderBy('timestamp',
-                                                descending: true)
-                                            .snapshots(),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return Center(
-                                                child:
-                                                    CircularProgressIndicator());
-                                          }
+                                  ),
+                                );
+                              }
 
-                                          if (!snapshot.hasData ||
-                                              snapshot.data!.docs.isEmpty) {
-                                            return Center(
-                                                child:
-                                                    Text('No notifications'));
-                                          }
+                              final notifications = snapshot.data!.docs;
 
-                                          final notifications =
-                                              snapshot.data!.docs;
+                              return ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: notifications.length,
+                                separatorBuilder: (context, index) =>
+                                    const Divider(
+                                        color: borderColor, height: 1),
+                                itemBuilder: (context, index) {
+                                  final notification =
+                                      notifications[index].data()
+                                          as Map<String, dynamic>;
+                                  final isRead =
+                                      notification['isRead'] ?? false;
+                                  final docId = notifications[index].id;
+                                  final status =
+                                      notification['status'] ?? 'Pending';
 
-                                          return ListView.separated(
-                                            itemCount: notifications.length,
-                                            separatorBuilder:
-                                                (context, index) => Divider(),
-                                            itemBuilder: (context, index) {
-                                              final notification =
-                                                  notifications[index].data()
-                                                      as Map<String, dynamic>;
-                                              final isRead =
-                                                  notification['isRead'] ??
-                                                      false;
-                                              final docId =
-                                                  notifications[index].id;
-                                              final status =
-                                                  notification['status'] ??
-                                                      'Pending';
-
-                                              return ListTile(
-                                                title: Text(
-                                                  notification['eventName'] ??
-                                                      'Online Interpretation Request',
-                                                  style: TextStyle(
-                                                    fontWeight: isRead
-                                                        ? FontWeight.normal
-                                                        : FontWeight.bold,
-                                                  ),
-                                                ),
-                                                subtitle: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                        'Date: ${DateFormat('MMM d, yyyy').format((notification['eventDate'] as Timestamp).toDate())}'),
-                                                    Text(
-                                                        'Time: ${notification['eventTime']}'),
-                                                    Text(
-                                                        'Duration: ${notification['duration']} minutes'),
-                                                    Text('Status: $status'),
-                                                    if (status ==
-                                                        'Pending Payment')
-                                                      Text('Payment Required',
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .orange)),
-                                                  ],
-                                                ),
-                                                trailing: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    if (!isRead)
-                                                      Container(
-                                                        width: 12,
-                                                        height: 12,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          color: Colors.red,
-                                                        ),
-                                                      ),
-                                                    SizedBox(width: 8),
-                                                    PopupMenuButton(
-                                                      icon:
-                                                          Icon(Icons.more_vert),
-                                                      itemBuilder: (context) =>
-                                                          [
-                                                        PopupMenuItem(
-                                                          value: 'accept',
-                                                          child: Text(
-                                                              'Accept Request'),
-                                                        ),
-                                                        if (status ==
-                                                            'Pending Payment')
-                                                          PopupMenuItem(
-                                                            value:
-                                                                'confirm_payment',
-                                                            child: Text(
-                                                                'Confirm Payment'),
-                                                          ),
-                                                        PopupMenuItem(
-                                                          value: 'decline',
-                                                          child: Text(
-                                                              'Decline Request'),
-                                                        ),
-                                                        PopupMenuItem(
-                                                          value: 'mark_read',
-                                                          child: Text(isRead
-                                                              ? 'Mark as unread'
-                                                              : 'Mark as read'),
-                                                        ),
-                                                        PopupMenuItem(
-                                                          value: 'delete',
-                                                          child: Text(
-                                                              'Delete Booking'),
-                                                        ),
-                                                      ],
-                                                      onSelected:
-                                                          (value) async {
-                                                        if (value == 'accept') {
-                                                          _showPaymentDetailsDialog(
-                                                              context,
-                                                              docId,
-                                                              notification);
-                                                        } else if (value ==
-                                                            'confirm_payment') {
-                                                          _showPaymentConfirmationDialog(
-                                                              context,
-                                                              docId,
-                                                              notification);
-                                                        } else if (value ==
-                                                            'decline') {
-                                                          await _updateStatus(
-                                                              docId,
-                                                              notification,
-                                                              'Declined');
-                                                        } else if (value ==
-                                                            'mark_read') {
-                                                          await _toggleReadStatus(
-                                                              docId, isRead);
-                                                        } else if (value ==
-                                                            'delete') {
-                                                          _showDeleteConfirmationDialog(
-                                                              context,
-                                                              docId,
-                                                              notification);
-                                                        }
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                                onTap: () {
-                                                  if (!isRead) {
-                                                    _markAsRead(docId);
-                                                  }
-                                                },
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                                  return _buildNotificationTile(
+                                      context, notification, isRead, docId, status);
+                                },
+                              );
+                            },
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -236,6 +138,178 @@ class AdminNotificationsScreen extends StatelessWidget {
             ),
           ),
         ]),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return successColor;
+      case 'pending payment':
+        return warningColor;
+      case 'declined':
+        return dangerColor;
+      default:
+        return infoColor;
+    }
+  }
+
+  Widget _buildNotificationTile(BuildContext context,
+      Map<String, dynamic> notification, bool isRead, String docId, String status) {
+    return InkWell(
+      onTap: () {
+        if (!isRead) _markAsRead(docId);
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isRead ? Colors.transparent : primaryColor.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _getStatusColor(status).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                status == 'Confirmed'
+                    ? Icons.check_circle_outline
+                    : status == 'Declined'
+                        ? Icons.cancel_outlined
+                        : Icons.event_note_rounded,
+                color: _getStatusColor(status),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification['eventName'] ??
+                              'Online Interpretation Request',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight:
+                                isRead ? FontWeight.w500 : FontWeight.w600,
+                            color: darkTextColor,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(status).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          status,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _getStatusColor(status),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 4,
+                    children: [
+                      _infoChip(Icons.calendar_today_rounded,
+                          DateFormat('MMM d, yyyy').format((notification['eventDate'] as Timestamp).toDate())),
+                      _infoChip(Icons.access_time_rounded,
+                          '${notification['eventTime']}'),
+                      _infoChip(Icons.timer_outlined,
+                          '${notification['duration']} min'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!isRead)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: primaryColor,
+                    ),
+                  ),
+                PopupMenuButton(
+                  icon: Icon(Icons.more_vert, color: bodyTextColor, size: 20),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  itemBuilder: (context) => [
+                    _buildPopupItem(Icons.check_circle_outline, 'Accept Request', 'accept', successColor),
+                    if (status == 'Pending Payment')
+                      _buildPopupItem(Icons.payment_rounded, 'Confirm Payment', 'confirm_payment', primaryColor),
+                    _buildPopupItem(Icons.cancel_outlined, 'Decline Request', 'decline', warningColor),
+                    _buildPopupItem(
+                        isRead ? Icons.mark_email_unread_outlined : Icons.mark_email_read_outlined,
+                        isRead ? 'Mark as unread' : 'Mark as read',
+                        'mark_read', bodyTextColor),
+                    _buildPopupItem(Icons.delete_outline_rounded, 'Delete Booking', 'delete', dangerColor),
+                  ],
+                  onSelected: (value) async {
+                    if (value == 'accept') {
+                      _showPaymentDetailsDialog(context, docId, notification);
+                    } else if (value == 'confirm_payment') {
+                      _showPaymentConfirmationDialog(context, docId, notification);
+                    } else if (value == 'decline') {
+                      await _updateStatus(docId, notification, 'Declined');
+                    } else if (value == 'mark_read') {
+                      await _toggleReadStatus(docId, isRead);
+                    } else if (value == 'delete') {
+                      _showDeleteConfirmationDialog(context, docId, notification);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoChip(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: bodyTextColor),
+        const SizedBox(width: 4),
+        Text(text, style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor)),
+      ],
+    );
+  }
+
+  PopupMenuItem _buildPopupItem(IconData icon, String text, String value, Color color) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 10),
+          Text(text, style: GoogleFonts.inter(fontSize: 13, color: darkTextColor)),
+        ],
       ),
     );
   }
@@ -252,62 +326,79 @@ class AdminNotificationsScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Accept Request - Payment Details'),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: successColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.check_circle_outline,
+                    color: successColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('Accept Request',
+                    style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: darkTextColor)),
+              ),
+            ],
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Please provide payment details for this interpretation session:',
-                  style: TextStyle(fontSize: 14),
+                  'Provide payment details for this interpretation session:',
+                  style: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
                 ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: paymentNumberController,
-                  decoration: InputDecoration(
-                    labelText: 'Payment Number',
-                    hintText: '2547XXXXXXXX',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  keyboardType: TextInputType.phone,
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: paymentNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Account Name',
-                    hintText: 'e.g., John Doe or Company Name',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.account_circle),
-                  ),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: amountController,
-                  decoration: InputDecoration(
-                    labelText: 'Amount to Pay',
-                    hintText: 'e.g., 5000',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.attach_money),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
+                const SizedBox(height: 20),
+                _buildDialogField('Payment Number', '2547XXXXXXXX',
+                    paymentNumberController, Icons.phone_outlined,
+                    keyboardType: TextInputType.phone),
+                const SizedBox(height: 14),
+                _buildDialogField('Account Name', 'e.g., John Doe',
+                    paymentNameController, Icons.account_circle_outlined),
+                const SizedBox(height: 14),
+                _buildDialogField('Amount (UGX)', 'e.g., 5000',
+                    amountController, Icons.payments_outlined,
+                    keyboardType: TextInputType.number),
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
+              child: Text('Cancel',
+                  style: GoogleFonts.inter(color: bodyTextColor)),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: successColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
               onPressed: () async {
                 if (paymentNumberController.text.isEmpty ||
                     paymentNameController.text.isEmpty ||
                     amountController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please fill all payment details')),
+                    SnackBar(
+                      content: Text('Please fill all payment details',
+                          style: GoogleFonts.inter()),
+                      backgroundColor: dangerColor,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
                   );
                   return;
                 }
@@ -324,14 +415,67 @@ class AdminNotificationsScreen extends StatelessWidget {
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text('Request accepted with payment details')),
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle,
+                            color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        Text('Request accepted with payment details',
+                            style: GoogleFonts.inter()),
+                      ],
+                    ),
+                    backgroundColor: successColor,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
                 );
               },
-              child: Text('Accept Request'),
+              child:
+                  Text('Accept Request', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDialogField(String label, String hint,
+      TextEditingController controller, IconData icon,
+      {TextInputType keyboardType = TextInputType.text}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: darkTextColor)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
+            prefixIcon: Icon(icon, size: 18, color: bodyTextColor),
+            fillColor: bgColor,
+            filled: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: primaryColor)),
+          ),
+        ),
+      ],
     );
   }
 
@@ -462,32 +606,94 @@ class AdminNotificationsScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm Payment'),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.payment_rounded,
+                    color: primaryColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('Confirm Payment',
+                    style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: darkTextColor)),
+              ),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Have you received payment for this booking?'),
-              SizedBox(height: 20),
-              Text('Amount: UGX ${notification['amount']}'),
-              Text('Payment to: ${notification['paymentName']}'),
-              Text('Number: ${notification['paymentNumber']}'),
+              Text('Have you received payment for this booking?',
+                  style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Column(
+                  children: [
+                    _detailRow('Amount', 'UGX ${notification['amount']}'),
+                    const SizedBox(height: 8),
+                    _detailRow('Pay to', '${notification['paymentName']}'),
+                    const SizedBox(height: 8),
+                    _detailRow('Number', '${notification['paymentNumber']}'),
+                  ],
+                ),
+              ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
+              child: Text('Cancel',
+                  style: GoogleFonts.inter(color: bodyTextColor)),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _confirmPayment(docId, notification);
               },
-              child: Text('Confirm Payment'),
+              child: Text('Confirm Payment',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: GoogleFonts.inter(fontSize: 13, color: bodyTextColor)),
+        Text(value,
+            style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: darkTextColor)),
+      ],
     );
   }
 
@@ -646,20 +852,52 @@ class AdminNotificationsScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Booking'),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: dangerColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.delete_outline_rounded,
+                    color: dangerColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('Delete Booking',
+                    style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: darkTextColor)),
+              ),
+            ],
+          ),
           content: Text(
-              'Are you sure you want to delete this booking? This action cannot be undone.'),
+              'Are you sure you want to delete this booking? This action cannot be undone.',
+              style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
+              child: Text('Cancel',
+                  style: GoogleFonts.inter(color: bodyTextColor)),
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: dangerColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 _deleteBooking(docId, notification);
               },
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              child: Text('Delete',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ),
           ],
         );
