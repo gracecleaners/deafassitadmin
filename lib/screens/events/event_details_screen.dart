@@ -1,9 +1,11 @@
+import 'package:admin/constants.dart';
 import 'package:admin/models/event.dart';
 import 'package:admin/responsive.dart';
 import 'package:admin/screens/dashboard/components/header.dart';
 import 'package:admin/screens/events/add_event_dialog.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -43,199 +45,211 @@ class EventDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(26),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Header(title: "Event Detail"),
-            SizedBox(height: 20),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth > 600) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Image column
-                      Flexible(
-                        flex: 1,
-                        child: LayoutBuilder(
-                          builder: (context, innerConstraints) {
-                            return SingleChildScrollView(
-                              physics: NeverScrollableScrollPhysics(),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: 0, // Important change
-                                  maxHeight: double.infinity,
-                                ),
-                                child: AspectRatio(
-                                  aspectRatio:
-                                      3 / 4, // Adjust this ratio as needed
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      event.imageUrl ??
-                                          'https://via.placeholder.com/400',
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(defaultPadding * 1.5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Header(title: ''),
+          SizedBox(height: defaultPadding),
+          Text(
+            "Event Details",
+            style: GoogleFonts.inter(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: darkTextColor),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "View event information",
+            style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
+          ),
+          SizedBox(height: defaultPadding),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 600) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      flex: 1,
+                      child: Container(
+                        decoration: cardDecoration,
+                        clipBehavior: Clip.antiAlias,
+                        child: AspectRatio(
+                          aspectRatio: 3 / 4,
+                          child: Image.network(
+                            event.imageUrl ?? 'https://via.placeholder.com/400',
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 24),
-                      // Details column
-                      Flexible(
-                        flex: 1,
-                        child: _buildEventDetails(context),
+                    ),
+                    const SizedBox(width: 24),
+                    Flexible(
+                      flex: 1,
+                      child: _buildEventDetails(context),
+                    ),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    Container(
+                      decoration: cardDecoration,
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.network(
+                        event.imageUrl ?? 'https://via.placeholder.com/400',
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
                       ),
-                    ],
-                  );
-                } else {
-                  return Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          event.imageUrl ?? 'https://via.placeholder.com/400',
-                          width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(height: 24),
-                      _buildEventDetails(context),
-                    ],
-                  );
-                }
-              },
-            ),
-          ],
-        ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildEventDetails(context),
+                  ],
+                );
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildEventDetails(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                event.title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  event.title,
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: darkTextColor,
+                  ),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  onPressed: () async {
+                    final updatedEvent = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddEventDialog(event: event),
+                      ),
+                    );
+
+                    if (updatedEvent != null) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EventDetails(event: updatedEvent),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.edit_rounded,
+                      color: primaryColor, size: 20),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildDetailRow(
+            context,
+            icon: Icons.calendar_today_rounded,
+            title: 'Date & Time',
+            content: _buildDateTimeText(),
+          ),
+          const SizedBox(height: 16),
+          if (event.location != null) ...[
+            _buildDetailRow(
+              context,
+              icon: Icons.location_on_rounded,
+              title: 'Location',
+              content: Text(event.location!,
+                  style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (event.category != null) ...[
+            _buildDetailRow(
+              context,
+              icon: Icons.category_rounded,
+              title: 'Category',
+              content: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(event.category!,
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: primaryColor)),
               ),
             ),
-            IconButton(
-              onPressed: () async {
-                final updatedEvent = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddEventDialog(event: event),
-                  ),
-                );
-
-                if (updatedEvent != null) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EventDetails(event: updatedEvent),
-                    ),
-                  );
-                }
-              },
-              icon: Icon(Icons.edit),
+            const SizedBox(height: 16),
+          ],
+          if (event.tags != null && event.tags!.isNotEmpty) ...[
+            Text('Tags',
+                style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: darkTextColor)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: event.tags!
+                  .map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Text(tag,
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: bodyTextColor)),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 24),
+          ],
+          if (event.description != null) ...[
+            const Divider(color: borderColor),
+            const SizedBox(height: 16),
+            Text('Description',
+                style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: darkTextColor)),
+            const SizedBox(height: 8),
+            Text(
+              event.description!,
+              style: GoogleFonts.inter(
+                  fontSize: 14, color: bodyTextColor, height: 1.5),
             ),
           ],
-        ),
-        SizedBox(height: 16),
-        // Date and Time
-        _buildDetailRow(
-          context,
-          icon: Icons.calendar_today,
-          title: 'Date & Time',
-          content: _buildDateTimeText(),
-        ),
-        SizedBox(height: 16),
-
-        // Location
-        if (event.location != null)
-          Column(
-            children: [
-              _buildDetailRow(
-                context,
-                icon: Icons.location_on,
-                title: 'Location',
-                content: Text(event.location!),
-              ),
-              SizedBox(height: 16),
-            ],
-          ),
-
-        // Category
-        if (event.category != null)
-          Column(
-            children: [
-              _buildDetailRow(
-                context,
-                icon: Icons.category,
-                title: 'Category',
-                content: Text(event.category!),
-              ),
-              SizedBox(height: 16),
-            ],
-          ),
-
-        // Tags
-        if (event.tags != null && event.tags!.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tags',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children:
-                    event.tags!.map((tag) => Chip(label: Text(tag))).toList(),
-              ),
-              SizedBox(height: 24),
-            ],
-          ),
-
-        // Description
-        if (event.description != null)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Description',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                event.description!,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              SizedBox(height: 24),
-            ],
-          ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -248,19 +262,25 @@ class EventDetailsScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 24),
-        SizedBox(width: 16),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 18, color: primaryColor),
+        ),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              SizedBox(height: 4),
+              Text(title,
+                  style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: darkTextColor)),
+              const SizedBox(height: 4),
               content,
             ],
           ),
@@ -281,10 +301,12 @@ class EventDetailsScreen extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(dateFormat.format(event.startDate)),
-          SizedBox(height: 4),
+          Text(dateFormat.format(event.startDate),
+              style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
+          const SizedBox(height: 4),
           Text(
             '${timeFormat.format(event.startDate)} - ${timeFormat.format(event.endDate)}',
+            style: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
           ),
         ],
       );
@@ -292,9 +314,11 @@ class EventDetailsScreen extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('From: ${dateFormat.format(event.startDate)}'),
-          SizedBox(height: 4),
-          Text('To: ${dateFormat.format(event.endDate)}'),
+          Text('From: ${dateFormat.format(event.startDate)}',
+              style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
+          const SizedBox(height: 4),
+          Text('To: ${dateFormat.format(event.endDate)}',
+              style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
         ],
       );
     }
