@@ -183,8 +183,7 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                                 color: dangerColor, size: 48),
                             const SizedBox(height: 12),
                             Text('Error loading updates: ${snapshot.error}',
-                                style:
-                                    GoogleFonts.inter(color: bodyTextColor)),
+                                style: GoogleFonts.inter(color: bodyTextColor)),
                           ],
                         ),
                       ),
@@ -313,8 +312,7 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
       ),
       items: items
           .map((c) => DropdownMenuItem(
-              value: c,
-              child: Text(c, style: GoogleFonts.inter(fontSize: 14))))
+              value: c, child: Text(c, style: GoogleFonts.inter(fontSize: 14))))
           .toList(),
       onChanged: onChanged,
     );
@@ -420,8 +418,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                             children: [
                               _fieldLabel('Category'),
                               const SizedBox(height: 6),
-                              _buildDropdown(
-                                  selectedCategory, _categoryOptions, (v) {
+                              _buildDropdown(selectedCategory, _categoryOptions,
+                                  (v) {
                                 setDialogState(() => selectedCategory = v!);
                               }),
                             ],
@@ -434,8 +432,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                             children: [
                               _fieldLabel('Status'),
                               const SizedBox(height: 6),
-                              _buildDropdown(
-                                  selectedStatus, _statusOptions, (v) {
+                              _buildDropdown(selectedStatus, _statusOptions,
+                                  (v) {
                                 setDialogState(() => selectedStatus = v!);
                               }),
                             ],
@@ -454,8 +452,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                             children: [
                               _fieldLabel('Priority'),
                               const SizedBox(height: 6),
-                              _buildDropdown(
-                                  selectedPriority, _priorityOptions, (v) {
+                              _buildDropdown(selectedPriority, _priorityOptions,
+                                  (v) {
                                 setDialogState(() => selectedPriority = v!);
                               }),
                             ],
@@ -588,8 +586,7 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                     final imageUrl = imageUrlController.text.trim();
                     if (imageUrl.isNotEmpty) data['imageUrl'] = imageUrl;
 
-                    final targetAudience =
-                        targetAudienceController.text.trim();
+                    final targetAudience = targetAudienceController.text.trim();
                     if (targetAudience.isNotEmpty) {
                       data['targetAudience'] = targetAudience;
                     }
@@ -601,13 +598,10 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                     if (link.isNotEmpty) data['link'] = link;
 
                     if (scheduledDate != null) {
-                      data['publishDate'] =
-                          Timestamp.fromDate(scheduledDate!);
+                      data['publishDate'] = Timestamp.fromDate(scheduledDate!);
                     }
 
-                    await _firestore
-                        .collection('latest_updates')
-                        .add(data);
+                    await _firestore.collection('latest_updates').add(data);
                     Navigator.pop(context);
                     _showSuccessSnackbar(context, 'Update added successfully');
                   } catch (e) {
@@ -628,13 +622,26 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
     );
   }
 
+  // ==================== EDIT UPDATE DIALOG ====================
   void _showEditUpdateDialog(
       BuildContext context, String docId, Map<String, dynamic> data) {
-    final titleController = TextEditingController(text: data['title']);
+    final titleController = TextEditingController(text: data['title'] ?? '');
     final descriptionController =
-        TextEditingController(text: data['description']);
+        TextEditingController(text: data['description'] ?? '');
+    final imageUrlController =
+        TextEditingController(text: data['imageUrl'] ?? '');
+    final targetAudienceController =
+        TextEditingController(text: data['targetAudience'] ?? '');
+    final authorController = TextEditingController(text: data['author'] ?? '');
+    final linkController = TextEditingController(text: data['link'] ?? '');
     final formKey = GlobalKey<FormState>();
     String selectedCategory = data['category'] ?? 'General';
+    String selectedStatus = data['status'] ?? 'Published';
+    String selectedPriority = data['priority'] ?? 'Normal';
+    DateTime? scheduledDate;
+    if (data['publishDate'] is Timestamp) {
+      scheduledDate = (data['publishDate'] as Timestamp).toDate();
+    }
 
     showDialog(
       context: context,
@@ -662,108 +669,170 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
             ],
           ),
           content: SizedBox(
-            width: 500,
+            width: 600,
             child: Form(
               key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Title',
-                      style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: darkTextColor)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: titleController,
-                    style: GoogleFonts.inter(fontSize: 14),
-                    decoration: InputDecoration(
-                      fillColor: bgColor,
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: primaryColor)),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _fieldLabel('Title *'),
+                    const SizedBox(height: 6),
+                    _buildTextField(titleController, 'Enter update title',
+                        validator: (v) =>
+                            v?.isEmpty ?? true ? 'Title is required' : null),
+                    const SizedBox(height: 16),
+                    _fieldLabel('Description *'),
+                    const SizedBox(height: 6),
+                    _buildTextField(
+                        descriptionController, 'Enter update description',
+                        maxLines: 4,
+                        validator: (v) => v?.isEmpty ?? true
+                            ? 'Description is required'
+                            : null),
+                    const SizedBox(height: 16),
+                    _fieldLabel('Image URL'),
+                    const SizedBox(height: 6),
+                    _buildTextField(
+                        imageUrlController, 'https://example.com/image.jpg'),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Category'),
+                              const SizedBox(height: 6),
+                              _buildDropdown(selectedCategory, _categoryOptions,
+                                  (v) {
+                                setDialogState(() => selectedCategory = v!);
+                              }),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Status'),
+                              const SizedBox(height: 6),
+                              _buildDropdown(selectedStatus, _statusOptions,
+                                  (v) {
+                                setDialogState(() => selectedStatus = v!);
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    validator: (v) =>
-                        v?.isEmpty ?? true ? 'Title is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Description',
-                      style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: darkTextColor)),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: descriptionController,
-                    style: GoogleFonts.inter(fontSize: 14),
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      fillColor: bgColor,
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: primaryColor)),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Priority'),
+                              const SizedBox(height: 6),
+                              _buildDropdown(selectedPriority, _priorityOptions,
+                                  (v) {
+                                setDialogState(() => selectedPriority = v!);
+                              }),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Publish Date'),
+                              const SizedBox(height: 6),
+                              InkWell(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate:
+                                        scheduledDate ?? DateTime.now(),
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime(2030),
+                                  );
+                                  if (picked != null) {
+                                    setDialogState(
+                                        () => scheduledDate = picked);
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 13),
+                                  decoration: BoxDecoration(
+                                    color: bgColor,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          scheduledDate != null
+                                              ? DateFormat('MMM d, yyyy')
+                                                  .format(scheduledDate!)
+                                              : 'Select date',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color: scheduledDate != null
+                                                ? darkTextColor
+                                                : bodyTextColor,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(Icons.calendar_today_rounded,
+                                          size: 16, color: bodyTextColor),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    validator: (v) =>
-                        v?.isEmpty ?? true ? 'Description is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Category',
-                      style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: darkTextColor)),
-                  const SizedBox(height: 6),
-                  DropdownButtonFormField<String>(
-                    value: selectedCategory,
-                    style:
-                        GoogleFonts.inter(fontSize: 14, color: darkTextColor),
-                    decoration: InputDecoration(
-                      fillColor: bgColor,
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: borderColor)),
+                    const SizedBox(height: 16),
+                    _fieldLabel('Target Audience'),
+                    const SizedBox(height: 6),
+                    _buildTextField(
+                        targetAudienceController, 'e.g. Deaf Community, All'),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Author'),
+                              const SizedBox(height: 6),
+                              _buildTextField(authorController, 'Author name'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _fieldLabel('Link / URL'),
+                              const SizedBox(height: 6),
+                              _buildTextField(linkController, 'https://...'),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    items: [
-                      'General',
-                      'Event',
-                      'Course',
-                      'Service',
-                      'Announcement'
-                    ]
-                        .map((c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(c,
-                                style: GoogleFonts.inter(fontSize: 14))))
-                        .toList(),
-                    onChanged: (v) =>
-                        setDialogState(() => selectedCategory = v!),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -784,38 +853,45 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   try {
-                    await _firestore
-                        .collection('latest_updates')
-                        .doc(docId)
-                        .update({
+                    final updateData = <String, dynamic>{
                       'title': titleController.text.trim(),
                       'description': descriptionController.text.trim(),
                       'category': selectedCategory,
-                    });
+                      'status': selectedStatus,
+                      'priority': selectedPriority,
+                      'isActive': selectedStatus == 'Published',
+                    };
+
+                    final imageUrl = imageUrlController.text.trim();
+                    updateData['imageUrl'] =
+                        imageUrl.isNotEmpty ? imageUrl : null;
+
+                    final targetAudience = targetAudienceController.text.trim();
+                    updateData['targetAudience'] =
+                        targetAudience.isNotEmpty ? targetAudience : null;
+
+                    final author = authorController.text.trim();
+                    updateData['author'] = author.isNotEmpty ? author : null;
+
+                    final link = linkController.text.trim();
+                    updateData['link'] = link.isNotEmpty ? link : null;
+
+                    if (scheduledDate != null) {
+                      updateData['publishDate'] =
+                          Timestamp.fromDate(scheduledDate!);
+                    }
+
+                    await _firestore
+                        .collection('latest_updates')
+                        .doc(docId)
+                        .update(updateData);
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(Icons.check_circle,
-                                color: Colors.white, size: 18),
-                            const SizedBox(width: 8),
-                            Text('Update edited successfully',
-                                style: GoogleFonts.inter()),
-                          ],
-                        ),
-                        backgroundColor: successColor,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                    );
+                    _showSuccessSnackbar(context, 'Update edited successfully');
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: dangerColor,
-                      ),
+                          content: Text('Error: $e'),
+                          backgroundColor: dangerColor),
                     );
                   }
                 }
@@ -878,28 +954,11 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                     .doc(docId)
                     .delete();
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(Icons.check_circle,
-                            color: Colors.white, size: 18),
-                        const SizedBox(width: 8),
-                        Text('Update deleted', style: GoogleFonts.inter()),
-                      ],
-                    ),
-                    backgroundColor: successColor,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                );
+                _showSuccessSnackbar(context, 'Update deleted');
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: dangerColor,
-                  ),
+                      content: Text('Error: $e'), backgroundColor: dangerColor),
                 );
               }
             },
@@ -912,6 +971,7 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
   }
 }
 
+// ==================== UPDATE CARD ====================
 class _UpdateCard extends StatelessWidget {
   final String docId;
   final Map<String, dynamic> data;
@@ -935,6 +995,10 @@ class _UpdateCard extends StatelessWidget {
         return Icons.miscellaneous_services_rounded;
       case 'Announcement':
         return Icons.campaign_rounded;
+      case 'News':
+        return Icons.newspaper_rounded;
+      case 'Alert':
+        return Icons.warning_amber_rounded;
       default:
         return Icons.info_rounded;
     }
@@ -950,6 +1014,53 @@ class _UpdateCard extends StatelessWidget {
         return infoColor;
       case 'Announcement':
         return dangerColor;
+      case 'News':
+        return const Color(0xFF9B59B6);
+      case 'Alert':
+        return const Color(0xFFE74C3C);
+      default:
+        return primaryColor;
+    }
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'Published':
+        return successColor;
+      case 'Draft':
+        return warningColor;
+      case 'Scheduled':
+        return infoColor;
+      case 'Archived':
+        return bodyTextColor;
+      default:
+        return bodyTextColor;
+    }
+  }
+
+  IconData _getStatusIcon(String? status) {
+    switch (status) {
+      case 'Published':
+        return Icons.public_rounded;
+      case 'Draft':
+        return Icons.edit_note_rounded;
+      case 'Scheduled':
+        return Icons.schedule_rounded;
+      case 'Archived':
+        return Icons.archive_rounded;
+      default:
+        return Icons.help_outline_rounded;
+    }
+  }
+
+  Color _getPriorityColor(String? priority) {
+    switch (priority) {
+      case 'High':
+        return dangerColor;
+      case 'Normal':
+        return primaryColor;
+      case 'Low':
+        return bodyTextColor;
       default:
         return primaryColor;
     }
@@ -963,162 +1074,271 @@ class _UpdateCard extends StatelessWidget {
     final dateStr = createdAt != null
         ? DateFormat('MMM d, yyyy • h:mm a').format(createdAt.toDate())
         : 'Just now';
-    final isActive = data['isActive'] ?? true;
+    final status = data['status'] ?? 'Published';
+    final statusColor = _getStatusColor(status);
+    final priority = data['priority'] ?? 'Normal';
+    final imageUrl = data['imageUrl'] as String?;
+    final author = data['author'] as String?;
+    final targetAudience = data['targetAudience'] as String?;
 
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: secondaryColor,
         borderRadius: BorderRadius.circular(14),
         boxShadow: cardShadow,
-        border: Border(
-          left: BorderSide(color: catColor, width: 4),
-        ),
+        border: Border(left: BorderSide(color: catColor, width: 4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: catColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+          // Image preview
+          if (imageUrl != null && imageUrl.isNotEmpty)
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.only(topRight: Radius.circular(14)),
+              child: Image.network(
+                imageUrl,
+                height: 140,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 60,
+                  color: bgColor,
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.broken_image_rounded,
+                            color: bodyTextColor.withOpacity(0.4), size: 18),
+                        const SizedBox(width: 6),
+                        Text('Image failed to load',
+                            style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: bodyTextColor.withOpacity(0.4))),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tags row
+                Row(
                   children: [
-                    Icon(_getCategoryIcon(category), size: 14, color: catColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      category,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: catColor,
+                    // Category badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: catColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
                       ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_getCategoryIcon(category),
+                              size: 14, color: catColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            category,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: catColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Status badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_getStatusIcon(status),
+                              size: 12, color: statusColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            status,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Priority badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getPriorityColor(priority).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        priority,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _getPriorityColor(priority),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert_rounded,
+                          color: bodyTextColor, size: 20),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      onSelected: (value) {
+                        if (value == 'edit') onEdit();
+                        if (value == 'delete') onDelete();
+                        if (value == 'publish') {
+                          FirebaseFirestore.instance
+                              .collection('latest_updates')
+                              .doc(docId)
+                              .update({
+                            'status': 'Published',
+                            'isActive': true,
+                          });
+                        }
+                        if (value == 'archive') {
+                          FirebaseFirestore.instance
+                              .collection('latest_updates')
+                              .doc(docId)
+                              .update({
+                            'status': 'Archived',
+                            'isActive': false,
+                          });
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit_rounded,
+                                  size: 18, color: primaryColor),
+                              const SizedBox(width: 8),
+                              Text('Edit',
+                                  style: GoogleFonts.inter(fontSize: 14)),
+                            ],
+                          ),
+                        ),
+                        if (status != 'Published')
+                          PopupMenuItem(
+                            value: 'publish',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.public_rounded,
+                                    size: 18, color: successColor),
+                                const SizedBox(width: 8),
+                                Text('Publish',
+                                    style: GoogleFonts.inter(fontSize: 14)),
+                              ],
+                            ),
+                          ),
+                        if (status != 'Archived')
+                          PopupMenuItem(
+                            value: 'archive',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.archive_rounded,
+                                    size: 18, color: warningColor),
+                                const SizedBox(width: 8),
+                                Text('Archive',
+                                    style: GoogleFonts.inter(fontSize: 14)),
+                              ],
+                            ),
+                          ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.delete_outline_rounded,
+                                  size: 18, color: dangerColor),
+                              const SizedBox(width: 8),
+                              Text('Delete',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 14, color: dangerColor)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? successColor.withOpacity(0.1)
-                      : bodyTextColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  isActive ? 'Active' : 'Inactive',
+                const SizedBox(height: 14),
+                // Title
+                Text(
+                  data['title'] ?? '',
                   style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isActive ? successColor : bodyTextColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: darkTextColor,
                   ),
                 ),
-              ),
-              const Spacer(),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded,
-                    color: bodyTextColor, size: 20),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                onSelected: (value) {
-                  if (value == 'edit') onEdit();
-                  if (value == 'delete') onDelete();
-                  if (value == 'toggle') {
-                    FirebaseFirestore.instance
-                        .collection('latest_updates')
-                        .doc(docId)
-                        .update({'isActive': !isActive});
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.edit_rounded,
-                            size: 18, color: primaryColor),
-                        const SizedBox(width: 8),
-                        Text('Edit', style: GoogleFonts.inter(fontSize: 14)),
-                      ],
-                    ),
+                const SizedBox(height: 6),
+                // Description
+                Text(
+                  data['description'] ?? '',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: bodyTextColor,
+                    height: 1.5,
                   ),
-                  PopupMenuItem(
-                    value: 'toggle',
-                    child: Row(
-                      children: [
-                        Icon(
-                            isActive
-                                ? Icons.visibility_off_rounded
-                                : Icons.visibility_rounded,
-                            size: 18,
-                            color: warningColor),
-                        const SizedBox(width: 8),
-                        Text(isActive ? 'Deactivate' : 'Activate',
-                            style: GoogleFonts.inter(fontSize: 14)),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.delete_outline_rounded,
-                            size: 18, color: dangerColor),
-                        const SizedBox(width: 8),
-                        Text('Delete',
-                            style: GoogleFonts.inter(
-                                fontSize: 14, color: dangerColor)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            data['title'] ?? '',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: darkTextColor,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            data['description'] ?? '',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: bodyTextColor,
-              height: 1.5,
-            ),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(Icons.access_time_rounded,
-                  size: 14, color: bodyTextColor.withOpacity(0.6)),
-              const SizedBox(width: 4),
-              Text(
-                dateStr,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: bodyTextColor.withOpacity(0.6),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+                const SizedBox(height: 14),
+                // Meta row
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  children: [
+                    _metaItem(Icons.access_time_rounded, dateStr),
+                    if (author != null && author.isNotEmpty)
+                      _metaItem(Icons.person_rounded, author),
+                    if (targetAudience != null && targetAudience.isNotEmpty)
+                      _metaItem(Icons.groups_rounded, targetAudience),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _metaItem(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: bodyTextColor.withOpacity(0.6)),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: bodyTextColor.withOpacity(0.6),
+          ),
+        ),
+      ],
     );
   }
 }
