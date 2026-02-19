@@ -291,65 +291,70 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Send Payment Request'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.payment_rounded,
+                  color: primaryColor, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text('Send Payment Request',
+                style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: darkTextColor)),
+          ],
+        ),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  hintText: 'e.g. 254712345678',
-                  border: OutlineInputBorder(),
+              _formField('Phone Number', '254712345678', phoneController,
+                  Icons.phone_outlined, TextInputType.phone,
+                  validator: (v) =>
+                      v?.isEmpty ?? true ? 'Please enter phone number' : null),
+              const SizedBox(height: 14),
+              _formField('Account Name', 'M-PESA John Doe',
+                  accountNameController, Icons.account_circle_outlined, TextInputType.text,
+                  validator: (v) =>
+                      v?.isEmpty ?? true ? 'Please enter account name' : null),
+              const SizedBox(height: 14),
+              _formField('Amount (UGX)', '1500', amountController,
+                  Icons.payments_outlined, TextInputType.number,
+                  validator: (v) {
+                if (v == null || v.isEmpty) return 'Please enter amount';
+                if (double.tryParse(v) == null) return 'Enter valid amount';
+                return null;
+              }),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: infoColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter phone number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: accountNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Account Name',
-                  hintText: 'e.g. M-PESA John Doe',
-                  border: OutlineInputBorder(),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded,
+                        size: 16, color: infoColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'This payment request will be sent to the user via chat.',
+                        style: GoogleFonts.inter(
+                            fontSize: 12, color: bodyTextColor),
+                      ),
+                    ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter account name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (UGX)',
-                  hintText: 'e.g. 1500',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter valid amount';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'This payment request will be sent to the user via chat.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
@@ -357,18 +362,23 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel',
+                style: GoogleFonts.inter(color: bodyTextColor)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 try {
                   final userId = _bookingData!['userId'] as String?;
-                  if (userId == null) {
-                    throw Exception('User ID not found');
-                  }
+                  if (userId == null) throw Exception('User ID not found');
 
-                  // Send payment request message
                   await chatService.sendMessage(
                     receiverId: userId,
                     content:
@@ -376,7 +386,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     type: MessageType.text,
                   );
 
-                  // Update booking status to indicate payment request sent
                   await FirebaseFirestore.instance
                       .collection(widget.collectionName)
                       .doc(widget.bookingId)
@@ -391,7 +400,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     'timestamp': FieldValue.serverTimestamp(),
                   });
 
-                  // Send notification
                   await FirebaseFirestore.instance
                       .collection('notifications')
                       .add({
@@ -403,7 +411,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     'isRead': false,
                   });
 
-                  // Update user's unread notifications count
                   await FirebaseFirestore.instance
                       .collection('users')
                       .doc(userId)
@@ -416,9 +423,20 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Payment request sent successfully'),
-                        backgroundColor: Colors.green,
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle,
+                                color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Payment request sent successfully',
+                                style: GoogleFonts.inter()),
+                          ],
+                        ),
+                        backgroundColor: successColor,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                     );
                   }
@@ -426,18 +444,62 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error sending payment request: $e'),
-                        backgroundColor: Colors.red,
+                        content: Text('Error: $e', style: GoogleFonts.inter()),
+                        backgroundColor: dangerColor,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                     );
                   }
                 }
               }
             },
-            child: const Text('Send Request'),
+            child: Text('Send Request',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _formField(String label, String hint, TextEditingController controller,
+      IconData icon, TextInputType keyboardType,
+      {String? Function(String?)? validator}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: darkTextColor)),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
+            prefixIcon: Icon(icon, size: 18, color: bodyTextColor),
+            fillColor: bgColor,
+            filled: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: primaryColor)),
+          ),
+        ),
+      ],
     );
   }
 
@@ -447,74 +509,74 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
     switch (status.toLowerCase()) {
       case 'confirmed':
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
+        statusColor = successColor;
+        statusIcon = Icons.check_circle_rounded;
         break;
       case 'declined':
-        statusColor = Colors.red;
-        statusIcon = Icons.cancel;
+        statusColor = dangerColor;
+        statusIcon = Icons.cancel_rounded;
         break;
       case 'pending':
-        statusColor = Colors.orange;
-        statusIcon = Icons.access_time;
+        statusColor = warningColor;
+        statusIcon = Icons.access_time_rounded;
         break;
       case 'completed':
-        statusColor = Colors.blue;
-        statusIcon = Icons.task_alt;
+        statusColor = infoColor;
+        statusIcon = Icons.task_alt_rounded;
         break;
       case 'pending payment':
-        statusColor = Colors.purple;
-        statusIcon = Icons.payment;
+        statusColor = primaryColor;
+        statusIcon = Icons.payment_rounded;
         break;
       default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.info;
+        statusColor = bodyTextColor;
+        statusIcon = Icons.info_outline_rounded;
     }
 
-    return Card(
-      color: statusColor,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(statusIcon, color: Colors.white, size: 28),
-            const SizedBox(width: 16),
-            Text(
-              'Status: ${status.toUpperCase()}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(statusIcon, color: statusColor, size: 28),
+          const SizedBox(width: 16),
+          Text(
+            'Status: ${status.toUpperCase()}',
+            style: GoogleFonts.inter(
+              color: statusColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSectionCard(
       {required String title, required List<Widget> children}) {
-    return Card(
-      color: Colors.grey[850],
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: darkTextColor,
             ),
-            const Divider(color: Colors.white54),
-            const SizedBox(height: 8),
-            ...children,
-          ],
-        ),
+          ),
+          const Divider(color: borderColor),
+          const SizedBox(height: 8),
+          ...children,
+        ],
       ),
     );
   }
@@ -532,9 +594,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             width: 120,
             child: Text(
               '$label:',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: darkTextColor,
               ),
             ),
           ),
@@ -544,15 +607,17 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     onTap: onTap,
                     child: Text(
                       value,
-                      style: const TextStyle(
-                        color: Colors.lightBlue,
+                      style: GoogleFonts.inter(
+                        color: primaryColor,
+                        fontSize: 13,
                         decoration: TextDecoration.underline,
                       ),
                     ),
                   )
                 : Text(
                     value,
-                    style: const TextStyle(color: Colors.white),
+                    style:
+                        GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
                   ),
           ),
         ],
@@ -563,71 +628,96 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   Widget _buildActionButtons() {
     final status = _bookingData!['status'] as String? ?? 'Unknown';
 
-    return Card(
-      color: Colors.grey[850],
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Actions',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Actions',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: darkTextColor,
             ),
-            const Divider(color: Colors.white54),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 12,
-              children: [
-                if (status.toLowerCase() == 'pending')
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Approve'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
-                    onPressed: () => _updateStatus('confirmed'),
+          ),
+          const Divider(color: borderColor),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 12,
+            children: [
+              if (status.toLowerCase() == 'pending')
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle_rounded, size: 18),
+                  label: Text('Approve',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: successColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
-                if (status.toLowerCase() == 'pending')
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.cancel),
-                    label: const Text('Decline'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    onPressed: () => _updateStatus('declined'),
+                  onPressed: () => _updateStatus('confirmed'),
+                ),
+              if (status.toLowerCase() == 'pending')
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.cancel_rounded, size: 18),
+                  label: Text('Decline',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: dangerColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
-                // Invoke Payment button for confirmed in-person bookings
-                if (widget.collectionName == 'interpreter_bookings' &&
-                    status.toLowerCase() == 'confirmed')
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.payment),
-                    label: const Text('Invoke Payment'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: _showPaymentRequestDialog,
+                  onPressed: () => _updateStatus('declined'),
+                ),
+              if (widget.collectionName == 'interpreter_bookings' &&
+                  status.toLowerCase() == 'confirmed')
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.payment_rounded, size: 18),
+                  label: Text('Invoke Payment',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
-                if (status.toLowerCase() == 'confirmed' ||
-                    status.toLowerCase() == 'pending payment')
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Mark as Completed'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
-                    onPressed: () => _updateStatus('completed'),
+                  onPressed: _showPaymentRequestDialog,
+                ),
+              if (status.toLowerCase() == 'confirmed' ||
+                  status.toLowerCase() == 'pending payment')
+                ElevatedButton.icon(
+                  icon:
+                      const Icon(Icons.check_circle_outline_rounded, size: 18),
+                  label: Text('Mark as Completed',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: infoColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
-              ],
-            ),
-          ],
-        ),
+                  onPressed: () => _updateStatus('completed'),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
