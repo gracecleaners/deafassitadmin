@@ -322,14 +322,21 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   validator: (v) =>
                       v?.isEmpty ?? true ? 'Please enter phone number' : null),
               const SizedBox(height: 14),
-              _formField('Account Name', 'M-PESA John Doe',
-                  accountNameController, Icons.account_circle_outlined, TextInputType.text,
+              _formField(
+                  'Account Name',
+                  'M-PESA John Doe',
+                  accountNameController,
+                  Icons.account_circle_outlined,
+                  TextInputType.text,
                   validator: (v) =>
                       v?.isEmpty ?? true ? 'Please enter account name' : null),
               const SizedBox(height: 14),
-              _formField('Amount (UGX)', '1500', amountController,
-                  Icons.payments_outlined, TextInputType.number,
-                  validator: (v) {
+              _formField(
+                  'Amount (UGX)',
+                  '1500',
+                  amountController,
+                  Icons.payments_outlined,
+                  TextInputType.number, validator: (v) {
                 if (v == null || v.isEmpty) return 'Please enter amount';
                 if (double.tryParse(v) == null) return 'Enter valid amount';
                 return null;
@@ -362,8 +369,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel',
-                style: GoogleFonts.inter(color: bodyTextColor)),
+            child:
+                Text('Cancel', style: GoogleFonts.inter(color: bodyTextColor)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
