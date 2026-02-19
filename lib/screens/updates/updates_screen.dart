@@ -13,8 +13,9 @@ class UpdatesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer:
-          Responsive.isDesktop(context) ? null : const Drawer(child: SideMenu()),
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +99,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                       onPressed: () => _showAddUpdateDialog(context),
                       icon: const Icon(Icons.add_rounded, size: 18),
                       label: Text("Add Update",
-                          style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                          style:
+                              GoogleFonts.inter(fontWeight: FontWeight.w600)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
@@ -314,7 +316,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: selectedCategory,
-                    style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+                    style:
+                        GoogleFonts.inter(fontSize: 14, color: darkTextColor),
                     decoration: InputDecoration(
                       fillColor: bgColor,
                       filled: true,
@@ -327,11 +330,17 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(color: borderColor)),
                     ),
-                    items: ['General', 'Event', 'Course', 'Service', 'Announcement']
+                    items: [
+                      'General',
+                      'Event',
+                      'Course',
+                      'Service',
+                      'Announcement'
+                    ]
                         .map((c) => DropdownMenuItem(
                             value: c,
-                            child:
-                                Text(c, style: GoogleFonts.inter(fontSize: 14))))
+                            child: Text(c,
+                                style: GoogleFonts.inter(fontSize: 14))))
                         .toList(),
                     onChanged: (v) =>
                         setDialogState(() => selectedCategory = v!),
@@ -343,8 +352,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child:
-                  Text('Cancel', style: GoogleFonts.inter(color: bodyTextColor)),
+              child: Text('Cancel',
+                  style: GoogleFonts.inter(color: bodyTextColor)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -507,7 +516,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: selectedCategory,
-                    style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+                    style:
+                        GoogleFonts.inter(fontSize: 14, color: darkTextColor),
                     decoration: InputDecoration(
                       fillColor: bgColor,
                       filled: true,
@@ -520,11 +530,17 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(color: borderColor)),
                     ),
-                    items: ['General', 'Event', 'Course', 'Service', 'Announcement']
+                    items: [
+                      'General',
+                      'Event',
+                      'Course',
+                      'Service',
+                      'Announcement'
+                    ]
                         .map((c) => DropdownMenuItem(
                             value: c,
-                            child:
-                                Text(c, style: GoogleFonts.inter(fontSize: 14))))
+                            child: Text(c,
+                                style: GoogleFonts.inter(fontSize: 14))))
                         .toList(),
                     onChanged: (v) =>
                         setDialogState(() => selectedCategory = v!),
@@ -536,8 +552,8 @@ class _UpdatesListScreenState extends State<UpdatesListScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child:
-                  Text('Cancel', style: GoogleFonts.inter(color: bodyTextColor)),
+              child: Text('Cancel',
+                  style: GoogleFonts.inter(color: bodyTextColor)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -756,8 +772,7 @@ class _UpdateCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(_getCategoryIcon(category),
-                        size: 14, color: catColor),
+                    Icon(_getCategoryIcon(category), size: 14, color: catColor),
                     const SizedBox(width: 4),
                     Text(
                       category,
@@ -772,8 +787,7 @@ class _UpdateCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: isActive
                       ? successColor.withOpacity(0.1)
