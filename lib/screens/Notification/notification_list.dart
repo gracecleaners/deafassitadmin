@@ -558,6 +558,9 @@ class AdminNotificationsScreen extends StatelessWidget {
           'paymentNumber': paymentNumber,
           'paymentName': paymentName,
           'amount': amount,
+          'paymentAmount': amount,
+          'paymentMethod': 'Mobile Money',
+          'paymentStatus': 'Pending',
         });
       }
     } else if (userId != null && eventDate != null) {
@@ -573,17 +576,25 @@ class AdminNotificationsScreen extends StatelessWidget {
           'paymentNumber': paymentNumber,
           'paymentName': paymentName,
           'amount': amount,
+          'paymentAmount': amount,
+          'paymentMethod': 'Mobile Money',
+          'paymentStatus': 'Pending',
         });
       }
     }
 
-    // Create chat collection if it doesn't exist
+    // Create chat room if it doesn't exist
     final chatId = _generateChatId(adminId!, userId!);
-    final chatDoc =
-        await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
+    final chatDoc = await FirebaseFirestore.instance
+        .collection('chat_rooms')
+        .doc(chatId)
+        .get();
 
     if (!chatDoc.exists) {
-      await FirebaseFirestore.instance.collection('chats').doc(chatId).set({
+      await FirebaseFirestore.instance
+          .collection('chat_rooms')
+          .doc(chatId)
+          .set({
         'participants': [adminId, userId],
         'createdAt': FieldValue.serverTimestamp(),
         'lastMessage': null,
@@ -593,38 +604,41 @@ class AdminNotificationsScreen extends StatelessWidget {
 
     // Add status update message
     await FirebaseFirestore.instance
-        .collection('chats')
+        .collection('chat_rooms')
         .doc(chatId)
         .collection('messages')
         .add({
       'senderId': adminId,
       'receiverId': userId,
-      'text': 'Your request for "$eventName" has been accepted.',
+      'content': 'Your request for "$eventName" has been accepted.',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
-      'type': 'system',
+      'type': 0,
     });
 
     // Send payment details message
     await FirebaseFirestore.instance
-        .collection('chats')
+        .collection('chat_rooms')
         .doc(chatId)
         .collection('messages')
         .add({
       'senderId': adminId,
       'receiverId': userId,
-      'text': 'Payment Details:\n'
+      'content': 'Payment Details:\n'
           'Amount: UGX $amount\n'
           'Pay to: $paymentName\n'
           'Number: $paymentNumber\n\n'
           'Please upload picture of payment message after paying.',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
-      'type': 'payment_details',
+      'type': 0,
     });
 
     // Update last chat message
-    await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
+    await FirebaseFirestore.instance
+        .collection('chat_rooms')
+        .doc(chatId)
+        .update({
       'lastMessage': 'Payment details sent',
       'lastMessageTime': FieldValue.serverTimestamp(),
     });
@@ -787,7 +801,10 @@ class AdminNotificationsScreen extends StatelessWidget {
         await FirebaseFirestore.instance
             .collection('interpreter_bookings')
             .doc(bookingId)
-            .update({'status': 'Confirmed'});
+            .update({
+          'status': 'Confirmed',
+          'paymentStatus': 'Confirmed',
+        });
       }
     } else {
       final eventDate = notification['eventDate'];
@@ -801,6 +818,7 @@ class AdminNotificationsScreen extends StatelessWidget {
         for (var doc in interpretationsQuery.docs) {
           await doc.reference.update({
             'status': 'Confirmed',
+            'paymentStatus': 'Confirmed',
           });
         }
       }
@@ -810,21 +828,24 @@ class AdminNotificationsScreen extends StatelessWidget {
     final chatId = _generateChatId(adminId!, userId!);
 
     await FirebaseFirestore.instance
-        .collection('chats')
+        .collection('chat_rooms')
         .doc(chatId)
         .collection('messages')
         .add({
       'senderId': adminId,
       'receiverId': userId,
-      'text':
+      'content':
           'Payment confirmed for "$eventName". ${notificationType == 'physical_booking' ? 'Your booking is now confirmed.' : 'You will receive the meeting link soon.'}',
       'timestamp': FieldValue.serverTimestamp(),
       'isRead': false,
-      'type': 'system',
+      'type': 0,
     });
 
     // Update last chat message
-    await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
+    await FirebaseFirestore.instance
+        .collection('chat_rooms')
+        .doc(chatId)
+        .update({
       'lastMessage': 'Payment confirmed',
       'lastMessageTime': FieldValue.serverTimestamp(),
     });
@@ -1123,8 +1144,8 @@ class AdminNotificationsScreen extends StatelessWidget {
   }
 
   String _generateChatId(String adminId, String userId) {
-    List<String> ids = [adminId, userId];
-    ids.sort();
-    return ids.join('_');
+    return adminId.compareTo(userId) < 0
+        ? '$adminId-$userId'
+        : '$userId-$adminId';
   }
 }

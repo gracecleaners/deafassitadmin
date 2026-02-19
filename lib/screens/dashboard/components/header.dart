@@ -89,14 +89,29 @@ class Header extends StatelessWidget {
                     ),
                     if (unreadNotifications > 0)
                       Positioned(
-                        top: 8,
-                        right: 8,
+                        top: 6,
+                        right: 6,
                         child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
                             color: dangerColor,
                             shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            unreadNotifications > 9
+                                ? '9+'
+                                : '$unreadNotifications',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),

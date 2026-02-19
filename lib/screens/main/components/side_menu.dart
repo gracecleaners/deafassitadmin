@@ -8,6 +8,7 @@ import 'package:admin/screens/interpreter/interpreter_screen.dart';
 import 'package:admin/screens/main/main_screen.dart';
 import 'package:admin/screens/pdf/pdfs_screen.dart';
 import 'package:admin/screens/transactions/transaction_screen.dart';
+import 'package:admin/screens/updates/updates_screen.dart';
 import 'package:admin/screens/videos/video.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -152,6 +153,12 @@ class SideMenu extends StatelessWidget {
                     icon: Icons.event_rounded,
                     title: "Events",
                     onTap: () => navigateWithLoading(context, EventsScreen()),
+                  ),
+                  _SideMenuItem(
+                    icon: Icons.campaign_rounded,
+                    title: "Latest Updates",
+                    onTap: () =>
+                        navigateWithLoading(context, const UpdatesScreen()),
                   ),
                   _SideMenuItem(
                     icon: Icons.chat_bubble_rounded,
