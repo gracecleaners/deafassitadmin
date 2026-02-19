@@ -131,15 +131,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: defaultPadding),
                           decoration: BoxDecoration(
-                            color: secondaryColor,
+                            color: bgColor,
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: borderColor),
                           ),
                           child: TextField(
                             controller: _searchController,
                             decoration: const InputDecoration(
                               hintText: "Search conversations...",
                               border: InputBorder.none,
-                              icon: Icon(Icons.search, color: Colors.white70),
+                              icon: Icon(Icons.search, color: bodyTextColor),
                             ),
                           ),
                         ),
@@ -192,7 +193,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               physics: const AlwaysScrollableScrollPhysics(),
                               itemCount: chats.length,
                               separatorBuilder: (context, index) =>
-                                  Divider(color: Colors.grey[700]),
+                                  Divider(color: borderColor),
                               itemBuilder: (context, index) {
                                 final chat = chats[index];
                                 final participants = List<String>.from(
@@ -269,7 +270,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                                       color: Colors.green,
                                                       shape: BoxShape.circle,
                                                       border: Border.all(
-                                                          color: secondaryColor,
+                                                          color: bgColor,
                                                           width: 2),
                                                     ),
                                                   ),
