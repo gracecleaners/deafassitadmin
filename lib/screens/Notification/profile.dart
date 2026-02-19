@@ -3,6 +3,7 @@ import 'package:admin/screens/auth/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../constants.dart';
 import '../../responsive.dart';
@@ -61,8 +62,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bgColor,
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                  color: primaryColor, strokeWidth: 2))
           : SafeArea(
               child:
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -73,81 +80,147 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   child: SafeArea(
                     child: SingleChildScrollView(
                       primary: false,
-                      padding: EdgeInsets.all(defaultPadding),
+                      padding: EdgeInsets.all(defaultPadding * 1.5),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Header(
-                            title: '',
+                          Header(title: ''),
+                          SizedBox(height: defaultPadding),
+                          Text(
+                            "Admin Profile",
+                            style: GoogleFonts.inter(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: darkTextColor),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "View and manage your account",
+                            style: GoogleFonts.inter(
+                                fontSize: 14, color: bodyTextColor),
                           ),
                           SizedBox(height: defaultPadding),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                flex: 5,
-                                child: SizedBox(
-                                    height: MediaQuery.of(context).size.height -
-                                        200,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Center(
-                                            child: CircleAvatar(
-                                              radius: 50,
-                                              backgroundImage: AssetImage(
-                                                  'assets/images/profile_pic.png'),
-                                            ),
-                                          ),
-                                          SizedBox(height: 24),
-                                          Text(
-                                            'Personal Information',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleLarge,
-                                          ),
-                                          SizedBox(height: 16),
-                                          TextField(
-                                            controller: _nameController,
-                                            decoration: InputDecoration(
-                                              labelText: 'Name',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            readOnly: true,
-                                          ),
-                                          SizedBox(height: 16),
-                                          TextField(
-                                            controller: _emailController,
-                                            decoration: InputDecoration(
-                                              labelText: 'Email',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                            readOnly: true,
-                                          ),
-                                          SizedBox(height: 24),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              minimumSize:
-                                                  Size(double.infinity, 50),
-                                            ),
-                                            onPressed: () {
-                                              // Sign out functionality
-                                              FirebaseAuth.instance.signOut();
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          LoginPage()));
-                                            },
-                                            child: Text('Sign Out'),
-                                          ),
-                                        ],
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 500),
+                              child: Container(
+                                padding: const EdgeInsets.all(32),
+                                decoration: cardDecoration,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Center(
+                                      child: CircleAvatar(
+                                        radius: 50,
+                                        backgroundColor:
+                                            primaryColor.withOpacity(0.1),
+                                        child: const Icon(Icons.person,
+                                            size: 50, color: primaryColor),
                                       ),
-                                    )),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    Text(
+                                      'Personal Information',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: darkTextColor),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text('Name',
+                                        style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: darkTextColor)),
+                                    const SizedBox(height: 6),
+                                    TextField(
+                                      controller: _nameController,
+                                      readOnly: true,
+                                      style: GoogleFonts.inter(
+                                          color: darkTextColor),
+                                      decoration: InputDecoration(
+                                        prefixIcon: const Icon(
+                                            Icons.person_outline,
+                                            size: 18,
+                                            color: bodyTextColor),
+                                        fillColor: bgColor,
+                                        filled: true,
+                                        border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            borderSide: const BorderSide(
+                                                color: borderColor)),
+                                        enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            borderSide: const BorderSide(
+                                                color: borderColor)),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text('Email',
+                                        style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: darkTextColor)),
+                                    const SizedBox(height: 6),
+                                    TextField(
+                                      controller: _emailController,
+                                      readOnly: true,
+                                      style: GoogleFonts.inter(
+                                          color: darkTextColor),
+                                      decoration: InputDecoration(
+                                        prefixIcon: const Icon(
+                                            Icons.email_outlined,
+                                            size: 18,
+                                            color: bodyTextColor),
+                                        fillColor: bgColor,
+                                        filled: true,
+                                        border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            borderSide: const BorderSide(
+                                                color: borderColor)),
+                                        enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            borderSide: const BorderSide(
+                                                color: borderColor)),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: dangerColor,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          elevation: 0,
+                                        ),
+                                        onPressed: () {
+                                          FirebaseAuth.instance.signOut();
+                                          Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      LoginPage()));
+                                        },
+                                        icon: const Icon(Icons.logout_rounded,
+                                            size: 18),
+                                        label: Text('Sign Out',
+                                            style: GoogleFonts.inter(
+                                                fontWeight: FontWeight.w600)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
