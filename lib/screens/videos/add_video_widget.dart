@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
+
+import '../../constants.dart';
 
 class AddVideoWidget extends StatefulWidget {
   const AddVideoWidget({Key? key}) : super(key: key);
@@ -25,7 +28,8 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
   }
 
   Future<void> _loadVideos() async {
-    final videoSnapshot = await FirebaseFirestore.instance.collection('videos').get();
+    final videoSnapshot =
+        await FirebaseFirestore.instance.collection('videos').get();
     setState(() {
       _videos = videoSnapshot.docs.map((doc) => doc.data()).toList();
     });
@@ -49,8 +53,36 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("Video feature coming soon!!"),
+    return Container(
+      padding: const EdgeInsets.all(40),
+      decoration: cardDecoration,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.videocam_outlined,
+                size: 48, color: primaryColor),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Video feature coming soon!',
+            style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: darkTextColor),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This feature is under development. Stay tuned!',
+            style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
+          ),
+        ],
+      ),
     );
   }
 
@@ -61,7 +93,7 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
         type: FileType.image,
         allowMultiple: false,
       );
-      
+
       if (result != null && result.files.isNotEmpty) {
         setState(() {
           _thumbnailPath = result.files.first.path;
@@ -127,7 +159,8 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
                   ),
                   TextFormField(
                     controller: modeController,
-                    decoration: InputDecoration(labelText: 'Mode (Online/Offline)'),
+                    decoration:
+                        InputDecoration(labelText: 'Mode (Online/Offline)'),
                   ),
                   TextFormField(
                     controller: videoLinkController,
@@ -177,10 +210,12 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
                   String? thumbnailUrl;
                   if (_thumbnail != null) {
                     try {
-                      thumbnailUrl = await uploadFile(_thumbnail!, 'thumbnails');
+                      thumbnailUrl =
+                          await uploadFile(_thumbnail!, 'thumbnails');
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to upload thumbnail: $e')),
+                        SnackBar(
+                            content: Text('Failed to upload thumbnail: $e')),
                       );
                       return;
                     }
@@ -218,7 +253,8 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
   Future<String?> uploadFile(File file, String folder) async {
     try {
       FirebaseStorage storage = FirebaseStorage.instance;
-      String fileName = '$folder/${DateTime.now().millisecondsSinceEpoch}.${file.path.split('.').last}';
+      String fileName =
+          '$folder/${DateTime.now().millisecondsSinceEpoch}.${file.path.split('.').last}';
       Reference ref = storage.ref().child(fileName);
       await ref.putFile(file);
       String downloadUrl = await ref.getDownloadURL();
@@ -230,7 +266,8 @@ class _AddVideoWidgetState extends State<AddVideoWidget> {
     }
   }
 
-  Future<void> addVideo(BuildContext context, Map<String, dynamic> video) async {
+  Future<void> addVideo(
+      BuildContext context, Map<String, dynamic> video) async {
     try {
       await FirebaseFirestore.instance.collection('videos').add(video);
       ScaffoldMessenger.of(context).showSnackBar(

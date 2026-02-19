@@ -1,10 +1,12 @@
 // screens/pdf/add_pdf_dialog.dart
 import 'dart:html' as html;
 import 'dart:typed_data';
+import 'package:admin/constants.dart';
 import 'package:admin/models/pdf.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class AddPdfDialog extends StatefulWidget {
@@ -191,132 +193,247 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.pdf == null ? "Upload PDF" : "Edit PDF"),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: "Title",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.title),
-                ),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? "Title is required" : null,
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: "Description (optional)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description),
-                ),
-                maxLines: 3,
-              ),
-              SizedBox(height: 16),
-              GestureDetector(
-                onTap: _pickPdf,
-                child: Container(
-                  height: 100,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: _selectedPdfBytes != null || widget.pdf != null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.picture_as_pdf, size: 40, color: Colors.red),
-                              Text(
-                                _selectedPdfName ?? widget.pdf?.fileName ?? '',
-                                textAlign: TextAlign.center,
-                              ),
-                              if (_selectedPdfSize != null)
-                                Text(
-                                  '${(_selectedPdfSize! / (1024 * 1024)).toStringAsFixed(2)} MB',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                            ],
-                          ),
-                        )
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.upload_file, size: 40),
-                              Text("Click to select PDF file"),
-                            ],
-                          ),
-                        ),
-                ),
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _categoryController,
-                decoration: InputDecoration(
-                  labelText: "Category (optional)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.category),
-                ),
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _tagsController,
-                      decoration: InputDecoration(
-                        labelText: "Add Tag",
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.tag),
-                      ),
-                      onFieldSubmitted: (value) => _addTag(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+                widget.pdf == null
+                    ? Icons.upload_file_rounded
+                    : Icons.edit_rounded,
+                color: primaryColor,
+                size: 20),
+          ),
+          const SizedBox(width: 12),
+          Text(widget.pdf == null ? "Upload PDF" : "Edit PDF",
+              style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: darkTextColor)),
+        ],
+      ),
+      content: SizedBox(
+        width: 450,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _dialogField("Title", "Enter document title", _titleController,
+                    Icons.title_rounded,
+                    validator: (value) =>
+                        value?.isEmpty ?? true ? "Title is required" : null),
+                const SizedBox(height: 14),
+                _dialogField("Description (optional)", "Enter description",
+                    _descriptionController, Icons.description_outlined,
+                    maxLines: 3),
+                const SizedBox(height: 14),
+                Text('PDF File',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: darkTextColor)),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: _pickPdf,
+                  child: Container(
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      border: Border.all(color: borderColor),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    child: _selectedPdfBytes != null || widget.pdf != null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.picture_as_pdf_rounded,
+                                    size: 32, color: dangerColor),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _selectedPdfName ??
+                                      widget.pdf?.fileName ??
+                                      '',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                      fontSize: 13, color: darkTextColor),
+                                ),
+                                if (_selectedPdfSize != null)
+                                  Text(
+                                    '${(_selectedPdfSize! / (1024 * 1024)).toStringAsFixed(2)} MB',
+                                    style: GoogleFonts.inter(
+                                        fontSize: 11, color: bodyTextColor),
+                                  ),
+                              ],
+                            ),
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.cloud_upload_outlined,
+                                    size: 32, color: bodyTextColor),
+                                const SizedBox(height: 6),
+                                Text("Click to select PDF file",
+                                    style: GoogleFonts.inter(
+                                        fontSize: 13, color: bodyTextColor)),
+                              ],
+                            ),
+                          ),
                   ),
-                  SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(Icons.add_circle),
-                    onPressed: _addTag,
-                    color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 14),
+                _dialogField("Category (optional)", "e.g., Learning Materials",
+                    _categoryController, Icons.category_outlined),
+                const SizedBox(height: 14),
+                Text('Tags',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: darkTextColor)),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _tagsController,
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: darkTextColor),
+                        decoration: InputDecoration(
+                          hintText: "Add a tag",
+                          hintStyle: GoogleFonts.inter(
+                              fontSize: 13, color: bodyTextColor),
+                          prefixIcon: const Icon(Icons.tag_rounded,
+                              size: 18, color: bodyTextColor),
+                          fillColor: bgColor,
+                          filled: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  const BorderSide(color: borderColor)),
+                          enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  const BorderSide(color: borderColor)),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide:
+                                  const BorderSide(color: primaryColor)),
+                        ),
+                        onSubmitted: (value) => _addTag(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_rounded,
+                          color: primaryColor),
+                      onPressed: _addTag,
+                    ),
+                  ],
+                ),
+                if (_tags.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: _tags.asMap().entries.map((entry) {
+                      return Chip(
+                        label: Text(entry.value,
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: primaryColor)),
+                        deleteIcon: const Icon(Icons.close,
+                            size: 14, color: primaryColor),
+                        onDeleted: () => _removeTag(entry.key),
+                        backgroundColor: primaryColor.withOpacity(0.1),
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      );
+                    }).toList(),
                   ),
                 ],
-              ),
-              SizedBox(height: 8),
-              if (_tags.isNotEmpty) ...[
-                Wrap(
-                  spacing: 8,
-                  children: _tags.asMap().entries.map((entry) {
-                    return Chip(
-                      label: Text(entry.value),
-                      deleteIcon: Icon(Icons.close, size: 16),
-                      onDeleted: () => _removeTag(entry.key),
-                    );
-                  }).toList(),
-                ),
-                SizedBox(height: 16),
+                if (_isUploading) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: const LinearProgressIndicator(
+                        color: primaryColor,
+                        backgroundColor: bgColor,
+                        minHeight: 3),
+                  ),
+                ],
               ],
-              if (_isUploading) LinearProgressIndicator(),
-            ],
+            ),
           ),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text("Cancel"),
+          child:
+              Text("Cancel", style: GoogleFonts.inter(color: bodyTextColor)),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            elevation: 0,
+          ),
           onPressed: _savePdf,
-          child: Text(widget.pdf == null ? "Upload" : "Update"),
+          child: Text(widget.pdf == null ? "Upload" : "Update",
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
         ),
       ],
     );
   }
-}
+
+  Widget _dialogField(String label, String hint,
+      TextEditingController controller, IconData icon,
+      {String? Function(String?)? validator, int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: darkTextColor)),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          maxLines: maxLines,
+          validator: validator,
+          style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
+            prefixIcon: Icon(icon, size: 18, color: bodyTextColor),
+            fillColor: bgColor,
+            filled: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: borderColor)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: primaryColor)),
+          ),
+        ),
+      ],
+    );
+  }
