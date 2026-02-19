@@ -1,6 +1,8 @@
+import 'package:admin/constants.dart';
 import 'package:admin/models/event.dart';
 import 'package:admin/screens/events/event_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class EventCard extends StatelessWidget {
@@ -15,19 +17,18 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: cardDecoration,
       clipBehavior: Clip.antiAlias,
-      elevation: 2,
       child: InkWell(
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EventDetails(event: event,),
+              builder: (context) => EventDetails(event: event),
             ),
           );
         },
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,78 +46,74 @@ class EventCard extends StatelessWidget {
                 children: [
                   if (event.isFeatured)
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(4),
+                        color: warningColor,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         'FEATURED',
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
                           color: Colors.white,
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     event.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: darkTextColor,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   if (event.description != null)
                     Text(
                       event.description!,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style:
+                          GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16),
-                      SizedBox(width: 8),
-                      Text(
-                        '${DateFormat('MMM dd, yyyy').format(event.startDate)}'
-                        '${event.endDate != event.startDate ? ' - ${DateFormat('MMM dd, yyyy').format(event.endDate)}' : ''}',
-                        style: TextStyle(color: Colors.white),
+                      Icon(Icons.calendar_today, size: 14, color: primaryColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${DateFormat('MMM dd, yyyy').format(event.startDate)}'
+                          '${event.endDate != event.startDate ? ' - ${DateFormat('MMM dd, yyyy').format(event.endDate)}' : ''}',
+                          style: GoogleFonts.inter(
+                              color: darkTextColor, fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
                   if (event.location != null) ...[
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 16),
-                        SizedBox(width: 8),
-                        Text(
-                          event.location!,
-                          style: TextStyle(color: Colors.white),
+                        Icon(Icons.location_on, size: 14, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            event.location!,
+                            style: GoogleFonts.inter(
+                                color: darkTextColor, fontSize: 12),
+                          ),
                         ),
                       ],
                     ),
                   ],
-                  SizedBox(height: 12),
-                  // if (event.category != null || event.tags != null)
-                  //   Wrap(
-                  //     spacing: 8,
-                  //     children: [
-                  //       if (event.category != null)
-                  //         Chip(
-                  //           label: Text(event.category!),
-                  //           backgroundColor: Colors.blue[100],
-                  //         ),
-                  //       ...?event.tags?.map((tag) => Chip(
-                  //             label: Text(tag, style: ,),
-                  //             backgroundColor: Colors.grey[200],
-                  //           )),
-                  //     ],
-                  //   ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),

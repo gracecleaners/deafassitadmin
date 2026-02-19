@@ -128,8 +128,9 @@ class _ChatScreenState extends State<ChatScreen> {
       margin: EdgeInsets.symmetric(vertical: 8),
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isMe ? primaryColor : Colors.grey[800],
+        color: isMe ? primaryColor : bgColor,
         borderRadius: BorderRadius.circular(20),
+        border: isMe ? null : Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -149,7 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   SizedBox(height: 4),
                   Text(
                     message.content,
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: isMe ? Colors.white : darkTextColor),
                   ),
                   if (message.meetingLink != null)
                     GestureDetector(
@@ -363,12 +364,13 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: Container(
                                 padding: EdgeInsets.symmetric(horizontal: defaultPadding * 0.75),
                                 decoration: BoxDecoration(
-                                  color: secondaryColor,
-                                  borderRadius: BorderRadius.circular(40),
+                                color: bgColor,
+                                borderRadius: BorderRadius.circular(40),
+                                border: Border.all(color: borderColor),
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.sentiment_satisfied_alt, color: Colors.white70),
+                                    Icon(Icons.sentiment_satisfied_alt, color: bodyTextColor),
                                     SizedBox(width: defaultPadding / 4),
                                     Expanded(
                                       child: TextField(
@@ -381,7 +383,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.attach_file, color: Colors.white70),
+                                      icon: Icon(Icons.attach_file, color: bodyTextColor),
                                       onPressed: () {
                                         // Handle file attachment
                                         _showAttachmentOptions();

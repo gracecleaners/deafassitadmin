@@ -5,6 +5,7 @@ import 'package:admin/models/courses.dart';
 import 'package:admin/screens/courses/course_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AddCourse extends StatelessWidget {
   @override
@@ -12,24 +13,53 @@ class AddCourse extends StatelessWidget {
     final Size _size = MediaQuery.of(context).size;
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Courses",
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AddCourseDialog(),
-                );
-              },
-              icon: Icon(Icons.add),
-              label: Text("Add Course"),
-            ),
-          ],
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: cardDecoration,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.school_rounded,
+                        color: primaryColor, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Text("All Courses",
+                      style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: darkTextColor)),
+                ],
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) => AddCourseDialog());
+                },
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: Text("Add Course",
+                    style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600, fontSize: 13)),
+              ),
+            ],
+          ),
         ),
         SizedBox(height: defaultPadding),
         Expanded(
@@ -38,10 +68,32 @@ class AddCourse extends StatelessWidget {
                 FirebaseFirestore.instance.collection('courses').snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(
+                    child: CircularProgressIndicator(
+                        color: primaryColor, strokeWidth: 2));
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(child: Text("No courses available"));
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.1),
+                            shape: BoxShape.circle),
+                        child: const Icon(Icons.school_outlined,
+                            color: primaryColor, size: 36),
+                      ),
+                      const SizedBox(height: 16),
+                      Text("No courses available",
+                          style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: darkTextColor)),
+                    ],
+                  ),
+                );
               }
               return GridView.builder(
                 shrinkWrap: true,
@@ -83,23 +135,20 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: cardDecoration,
       clipBehavior: Clip.antiAlias,
-      elevation: 2,
       child: InkWell(
         onTap: onTap,
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Course Image
                       AspectRatio(
                         aspectRatio: 16 / 9,
                         child: course.imageUrl != null
@@ -107,128 +156,58 @@ class CourseCard extends StatelessWidget {
                                 course.imageUrl!,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey[300],
-                                    child: Icon(Icons.image, size: 50),
-                                  );
+                                  return Container(color: bgColor, child: const Icon(Icons.image, size: 50, color: bodyTextColor));
                                 },
                               )
-                            : Container(
-                                color: Colors.grey[300],
-                                child: Icon(Icons.image, size: 50),
-                              ),
+                            : Container(color: bgColor, child: const Icon(Icons.image, size: 50, color: bodyTextColor)),
                       ),
-
-                      // Content
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Course Title
                               Text(
                                 course.name ?? 'Untitled Course',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: darkTextColor),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                               ),
-
                               const SizedBox(height: 8),
-
-                              // Instructors
                               Text(
                                 course.instructor ?? 'Unknown Instructor',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.grey[600],
-                                    ),
+                                style: GoogleFonts.inter(fontSize: 13, color: bodyTextColor),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                               ),
-
                               const SizedBox(height: 8),
-
-                              // Rating
                               Wrap(
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 spacing: 4,
                                 children: [
                                   Text(
                                     '${course.rating?.toStringAsFixed(1) ?? "0.0"}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.amber[700],
-                                    ),
+                                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.amber[700]),
                                   ),
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: List.generate(5, (index) {
                                       final rating = course.rating ?? 0;
-                                      final isHalf = rating - index > 0 &&
-                                          rating - index < 1;
+                                      final isHalf = rating - index > 0 && rating - index < 1;
                                       final isFull = rating - index >= 1;
-
                                       return Icon(
-                                        isFull
-                                            ? Icons.star
-                                            : isHalf
-                                                ? Icons.star_half
-                                                : Icons.star_border,
+                                        isFull ? Icons.star : isHalf ? Icons.star_half : Icons.star_border,
                                         size: 14,
                                         color: Colors.amber[700],
                                       );
                                     }),
                                   ),
-                                  
                                 ],
                               ),
-
                               const Spacer(),
-
-                              // Price and Bestseller
-                              Wrap(
-                                alignment: WrapAlignment.spaceBetween,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 8,
-                                children: [
-                                  // Price
-                                  Wrap(
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    spacing: 8,
-                                    children: [
-                                      Text(
-                                        '\$${course.price?.toStringAsFixed(2) ?? "0.00"}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                        Text(
-                                          '\$${course.price?.toStringAsFixed(2)}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                                decoration:
-                                                    TextDecoration.lineThrough,
-                                                color: Colors.grey[600],
-                                              ),
-                                        ),
-                                    ],
-                                  ),
-
-                                ],
+                              Text(
+                                '\$${course.price?.toStringAsFixed(2) ?? "0.00"}',
+                                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: darkTextColor),
                               ),
                             ],
                           ),
