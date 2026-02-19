@@ -87,8 +87,9 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
 
     try {
       setState(() => _isUploading = true);
-      
-      final String fileName = 'pdfs/${DateTime.now().millisecondsSinceEpoch}_$_selectedPdfName';
+
+      final String fileName =
+          'pdfs/${DateTime.now().millisecondsSinceEpoch}_$_selectedPdfName';
       final Reference storageRef = _storage.ref().child(fileName);
 
       final UploadTask uploadTask = storageRef.putData(
@@ -142,7 +143,8 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
 
       if (_selectedPdfBytes != null) {
         downloadUrl = await _uploadPdf();
-        filePath = 'pdfs/${DateTime.now().millisecondsSinceEpoch}_$_selectedPdfName';
+        filePath =
+            'pdfs/${DateTime.now().millisecondsSinceEpoch}_$_selectedPdfName';
       } else if (widget.pdf == null) {
         throw Exception('Please select a PDF file');
       } else {
@@ -152,17 +154,16 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
 
       final Map<String, dynamic> pdfData = {
         'title': _titleController.text,
-        'description': _descriptionController.text.isEmpty 
-            ? null 
+        'description': _descriptionController.text.isEmpty
+            ? null
             : _descriptionController.text,
         'downloadUrl': downloadUrl,
         'filePath': filePath,
         'fileName': _selectedPdfName ?? widget.pdf?.fileName ?? '',
         'fileSize': _selectedPdfSize ?? widget.pdf?.fileSize ?? 0,
         'uploadDate': FieldValue.serverTimestamp(),
-        'category': _categoryController.text.isEmpty 
-            ? null 
-            : _categoryController.text,
+        'category':
+            _categoryController.text.isEmpty ? null : _categoryController.text,
         'tags': _tags.isEmpty ? null : _tags,
       };
 
@@ -176,11 +177,10 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
       Navigator.pop(context); // Close form dialog
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-          widget.pdf == null 
-            ? "PDF uploaded successfully" 
-            : "PDF updated successfully"
-        )),
+        SnackBar(
+            content: Text(widget.pdf == null
+                ? "PDF uploaded successfully"
+                : "PDF updated successfully")),
       );
     } catch (e) {
       Navigator.pop(context); // Close progress dialog
@@ -319,12 +319,10 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
                               horizontal: 12, vertical: 12),
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  const BorderSide(color: borderColor)),
+                              borderSide: const BorderSide(color: borderColor)),
                           enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  const BorderSide(color: borderColor)),
+                              borderSide: const BorderSide(color: borderColor)),
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide:
@@ -379,8 +377,7 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child:
-              Text("Cancel", style: GoogleFonts.inter(color: bodyTextColor)),
+          child: Text("Cancel", style: GoogleFonts.inter(color: bodyTextColor)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -437,3 +434,4 @@ class _AddPdfDialogState extends State<AddPdfDialog> {
       ],
     );
   }
+}

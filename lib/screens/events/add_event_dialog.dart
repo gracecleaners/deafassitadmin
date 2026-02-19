@@ -93,8 +93,9 @@ class _AddEventDialogState extends State<AddEventDialog> {
 
     try {
       setState(() => _isUploading = true);
-      
-      final String fileName = 'events/${DateTime.now().millisecondsSinceEpoch}_$_selectedImageName';
+
+      final String fileName =
+          'events/${DateTime.now().millisecondsSinceEpoch}_$_selectedImageName';
       final Reference storageRef = _storage.ref().child(fileName);
 
       final UploadTask uploadTask = storageRef.putData(
@@ -154,97 +155,98 @@ class _AddEventDialogState extends State<AddEventDialog> {
 
   // ... (keep all your existing imports and code until _saveEvent method)
 
-Future<void> _saveEvent() async {
-  if (!_formKey.currentState!.validate()) return;
+  Future<void> _saveEvent() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  try {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-
-    String? imageUrl;
-    String imagePath = '';
-
-    if (_selectedImageBytes != null) {
-      imageUrl = await _uploadImage();
-      imagePath = 'events/${DateTime.now().millisecondsSinceEpoch}_$_selectedImageName';
-    } else if (widget.event == null && _selectedImageBytes == null) {
-      // Allow events without images
-    } else if (widget.event != null) {
-      imageUrl = widget.event!.imageUrl;
-      imagePath = widget.event!.imageUrl ?? '';
-    }
-
-    final Map<String, dynamic> eventData = {
-      'title': _titleController.text,
-      'description': _descriptionController.text.isEmpty 
-          ? null 
-          : _descriptionController.text,
-      'startDate': _startDate,
-      'endDate': _endDate,
-      'location': _locationController.text.isEmpty 
-          ? null 
-          : _locationController.text,
-      'imageUrl': imageUrl,
-      'category': _categoryController.text.isEmpty 
-          ? null 
-          : _categoryController.text,
-      'tags': _tags.isEmpty ? null : _tags,
-      'isFeatured': _isFeatured,
-    };
-
-    Event updatedEvent;
-    if (widget.event == null) {
-      final docRef = await _firestore.collection('events').add(eventData);
-      updatedEvent = Event(
-        id: docRef.id,
-        title: _titleController.text,
-        description: _descriptionController.text,
-        startDate: _startDate,
-        endDate: _endDate,
-        location: _locationController.text,
-        imageUrl: imageUrl,
-        category: _categoryController.text,
-        tags: _tags,
-        isFeatured: _isFeatured,
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: CircularProgressIndicator(),
+        ),
       );
-    } else {
-      await _firestore.collection('events').doc(widget.event!.id).update(eventData);
-      updatedEvent = Event(
-        id: widget.event!.id,
-        title: _titleController.text,
-        description: _descriptionController.text,
-        startDate: _startDate,
-        endDate: _endDate,
-        location: _locationController.text,
-        imageUrl: imageUrl,
-        category: _categoryController.text,
-        tags: _tags,
-        isFeatured: _isFeatured,
+
+      String? imageUrl;
+      String imagePath = '';
+
+      if (_selectedImageBytes != null) {
+        imageUrl = await _uploadImage();
+        imagePath =
+            'events/${DateTime.now().millisecondsSinceEpoch}_$_selectedImageName';
+      } else if (widget.event == null && _selectedImageBytes == null) {
+        // Allow events without images
+      } else if (widget.event != null) {
+        imageUrl = widget.event!.imageUrl;
+        imagePath = widget.event!.imageUrl ?? '';
+      }
+
+      final Map<String, dynamic> eventData = {
+        'title': _titleController.text,
+        'description': _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text,
+        'startDate': _startDate,
+        'endDate': _endDate,
+        'location':
+            _locationController.text.isEmpty ? null : _locationController.text,
+        'imageUrl': imageUrl,
+        'category':
+            _categoryController.text.isEmpty ? null : _categoryController.text,
+        'tags': _tags.isEmpty ? null : _tags,
+        'isFeatured': _isFeatured,
+      };
+
+      Event updatedEvent;
+      if (widget.event == null) {
+        final docRef = await _firestore.collection('events').add(eventData);
+        updatedEvent = Event(
+          id: docRef.id,
+          title: _titleController.text,
+          description: _descriptionController.text,
+          startDate: _startDate,
+          endDate: _endDate,
+          location: _locationController.text,
+          imageUrl: imageUrl,
+          category: _categoryController.text,
+          tags: _tags,
+          isFeatured: _isFeatured,
+        );
+      } else {
+        await _firestore
+            .collection('events')
+            .doc(widget.event!.id)
+            .update(eventData);
+        updatedEvent = Event(
+          id: widget.event!.id,
+          title: _titleController.text,
+          description: _descriptionController.text,
+          startDate: _startDate,
+          endDate: _endDate,
+          location: _locationController.text,
+          imageUrl: imageUrl,
+          category: _categoryController.text,
+          tags: _tags,
+          isFeatured: _isFeatured,
+        );
+      }
+
+      Navigator.pop(context);
+      Navigator.pop(context, updatedEvent);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(widget.event == null
+                ? "Event created successfully"
+                : "Event updated successfully")),
+      );
+    } catch (e) {
+      Navigator.pop(context); // Close progress dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
       );
     }
-
-    Navigator.pop(context); 
-    Navigator.pop(context, updatedEvent); 
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(
-        widget.event == null 
-          ? "Event created successfully" 
-          : "Event updated successfully"
-      )),
-    );
-  } catch (e) {
-    Navigator.pop(context); // Close progress dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: ${e.toString()}")),
-    );
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -259,9 +261,7 @@ Future<void> _saveEvent() async {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-                widget.event == null
-                    ? Icons.event_rounded
-                    : Icons.edit_rounded,
+                widget.event == null ? Icons.event_rounded : Icons.edit_rounded,
                 color: primaryColor,
                 size: 20),
           ),
@@ -294,13 +294,13 @@ Future<void> _saveEvent() async {
                 Row(
                   children: [
                     Expanded(
-                      child: _datePickerField(
-                          "Start Date", _startDate, () => _selectDate(context, true)),
+                      child: _datePickerField("Start Date", _startDate,
+                          () => _selectDate(context, true)),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _datePickerField(
-                          "End Date", _endDate, () => _selectDate(context, false)),
+                      child: _datePickerField("End Date", _endDate,
+                          () => _selectDate(context, false)),
                     ),
                   ],
                 ),
@@ -332,15 +332,13 @@ Future<void> _saveEvent() async {
                               children: [
                                 _selectedImageBytes != null
                                     ? ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                         child: Image.memory(
                                             _selectedImageBytes!,
                                             height: 80,
                                             fit: BoxFit.cover))
                                     : ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                         child: Image.network(
                                             widget.event!.imageUrl!,
                                             height: 80,
@@ -400,12 +398,10 @@ Future<void> _saveEvent() async {
                               horizontal: 12, vertical: 12),
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  const BorderSide(color: borderColor)),
+                              borderSide: const BorderSide(color: borderColor)),
                           enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  const BorderSide(color: borderColor)),
+                              borderSide: const BorderSide(color: borderColor)),
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide:
@@ -444,8 +440,8 @@ Future<void> _saveEvent() async {
                 ],
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: bgColor,
                     borderRadius: BorderRadius.circular(10),
@@ -483,8 +479,7 @@ Future<void> _saveEvent() async {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child:
-              Text("Cancel", style: GoogleFonts.inter(color: bodyTextColor)),
+          child: Text("Cancel", style: GoogleFonts.inter(color: bodyTextColor)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -541,40 +536,37 @@ Future<void> _saveEvent() async {
       ],
     );
   }
+}
 
-  Widget _datePickerField(String label, DateTime date, VoidCallback onTap) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: darkTextColor)),
-        const SizedBox(height: 6),
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: borderColor),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today_rounded,
-                    size: 16, color: bodyTextColor),
-                const SizedBox(width: 8),
-                Text(DateFormat('MMM dd, yyyy').format(date),
-                    style: GoogleFonts.inter(
-                        fontSize: 14, color: darkTextColor)),
-              ],
-            ),
+Widget _datePickerField(String label, DateTime date, VoidCallback onTap) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label,
+          style: GoogleFonts.inter(
+              fontSize: 12, fontWeight: FontWeight.w500, color: darkTextColor)),
+      const SizedBox(height: 6),
+      InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today_rounded,
+                  size: 16, color: bodyTextColor),
+              const SizedBox(width: 8),
+              Text(DateFormat('MMM dd, yyyy').format(date),
+                  style: GoogleFonts.inter(fontSize: 14, color: darkTextColor)),
+            ],
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}

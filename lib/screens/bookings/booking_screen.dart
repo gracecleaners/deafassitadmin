@@ -122,7 +122,9 @@ class _BookingListScreenState extends State<BookingListScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: primaryColor, strokeWidth: 2));
+      return const Center(
+          child:
+              CircularProgressIndicator(color: primaryColor, strokeWidth: 2));
     }
 
     if (_error != null) {
@@ -132,12 +134,15 @@ class _BookingListScreenState extends State<BookingListScreen> {
           children: [
             const Icon(Icons.error_outline, color: dangerColor, size: 40),
             const SizedBox(height: 12),
-            Text('Error: $_error', style: GoogleFonts.inter(color: darkTextColor)),
+            Text('Error: $_error',
+                style: GoogleFonts.inter(color: darkTextColor)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _fetchAllBookings,
-              style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white),
-              child: Text('Retry', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor, foregroundColor: Colors.white),
+              child: Text('Retry',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
             ),
           ],
         ),
@@ -151,11 +156,17 @@ class _BookingListScreenState extends State<BookingListScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: primaryColor.withOpacity(0.1), shape: BoxShape.circle),
-              child: const Icon(Icons.calendar_today_outlined, color: primaryColor, size: 36),
+              decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.calendar_today_outlined,
+                  color: primaryColor, size: 36),
             ),
             const SizedBox(height: 16),
-            Text('No bookings found', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: darkTextColor)),
+            Text('No bookings found',
+                style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: darkTextColor)),
           ],
         ),
       );
@@ -165,7 +176,7 @@ class _BookingListScreenState extends State<BookingListScreen> {
       child: Row(
         children: [
           if (Responsive.isDesktop(context))
-                const SizedBox(width: 260, child: SideMenu()),
+            const SizedBox(width: 260, child: SideMenu()),
           Expanded(
             flex: 5,
             child: SafeArea(
@@ -181,13 +192,19 @@ class _BookingListScreenState extends State<BookingListScreen> {
                       // Title section
                       Text(
                         "Booking Management",
-                        style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700, color: darkTextColor),
+                        style: GoogleFonts.inter(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: darkTextColor),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         "${_combinedBookings.length} total bookings",
-                        style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: bodyTextColor),
                       ),
+                      const SizedBox(height: defaultPadding),
+                      Expanded(
                         child: ListView.builder(
                           itemCount: _combinedBookings.length,
                           itemBuilder: (context, index) {
@@ -240,22 +257,29 @@ class _BookingListScreenState extends State<BookingListScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           decoration: cardDecoration,
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             leading: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: (eventName != null ? infoColor : primaryColor).withOpacity(0.1),
+                color: (eventName != null ? infoColor : primaryColor)
+                    .withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
-                eventName != null ? Icons.videocam_rounded : Icons.person_pin_rounded,
+                eventName != null
+                    ? Icons.videocam_rounded
+                    : Icons.person_pin_rounded,
                 color: eventName != null ? infoColor : primaryColor,
                 size: 22,
               ),
             ),
             title: Text(
               eventName != null ? 'Event: $eventName' : 'In-person Booking',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: darkTextColor, fontSize: 14),
+              style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w500,
+                  color: darkTextColor,
+                  fontSize: 14),
             ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 6),
@@ -263,23 +287,30 @@ class _BookingListScreenState extends State<BookingListScreen> {
                 children: [
                   Icon(Icons.calendar_today, size: 13, color: bodyTextColor),
                   const SizedBox(width: 4),
-                  Text(formattedDate, style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor)),
+                  Text(formattedDate,
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: bodyTextColor)),
                   const SizedBox(width: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: _getStatusColor(status).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       status ?? 'Unknown',
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: _getStatusColor(status)),
+                      style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: _getStatusColor(status)),
                     ),
                   ),
                 ],
               ),
             ),
-            trailing: const Icon(Icons.chevron_right_rounded, color: bodyTextColor),
+            trailing:
+                const Icon(Icons.chevron_right_rounded, color: bodyTextColor),
             onTap: () {
               Navigator.push(
                 context,
