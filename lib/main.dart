@@ -9,18 +9,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-void main() async {  
-  WidgetsFlutterBinding.ensureInitialized();  
-  await Firebase.initializeApp(  
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  );  
-   try {
+  );
+  try {
     await FirebaseFirestore.instance.clearPersistence();
   } catch (e) {
     print("Error clearing Firestore persistence: $e");
   }
-  runApp(MyApp());  
-}  
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -41,16 +41,24 @@ class MyApp extends StatelessWidget {
           ThemeData.light().textTheme,
         ).copyWith(
           headlineLarge: GoogleFonts.inter(
-            fontSize: 28, fontWeight: FontWeight.w700, color: darkTextColor,
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: darkTextColor,
           ),
           headlineMedium: GoogleFonts.inter(
-            fontSize: 24, fontWeight: FontWeight.w600, color: darkTextColor,
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: darkTextColor,
           ),
           titleLarge: GoogleFonts.inter(
-            fontSize: 20, fontWeight: FontWeight.w600, color: darkTextColor,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: darkTextColor,
           ),
           titleMedium: GoogleFonts.inter(
-            fontSize: 16, fontWeight: FontWeight.w600, color: darkTextColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: darkTextColor,
           ),
           bodyLarge: GoogleFonts.inter(fontSize: 16, color: bodyTextColor),
           bodyMedium: GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
@@ -58,7 +66,8 @@ class MyApp extends StatelessWidget {
         ),
         cardTheme: CardTheme(
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           color: secondaryColor,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -67,14 +76,17 @@ class MyApp extends StatelessWidget {
             foregroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            textStyle:
+                GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: bgColor,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: borderColor),
@@ -94,13 +106,17 @@ class MyApp extends StatelessWidget {
           elevation: 0,
           iconTheme: const IconThemeData(color: darkTextColor),
           titleTextStyle: GoogleFonts.inter(
-            fontSize: 20, fontWeight: FontWeight.w600, color: darkTextColor,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: darkTextColor,
           ),
         ),
         dividerTheme: const DividerThemeData(color: borderColor, thickness: 1),
         dataTableTheme: DataTableThemeData(
           headingTextStyle: GoogleFonts.inter(
-            fontSize: 13, fontWeight: FontWeight.w600, color: bodyTextColor,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: bodyTextColor,
           ),
           dataTextStyle: GoogleFonts.inter(fontSize: 13, color: darkTextColor),
           headingRowColor: WidgetStateProperty.all(bgColor),
