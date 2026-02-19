@@ -44,8 +44,8 @@ class AdminNotificationsScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       "Manage interpretation requests and bookings",
-                      style: GoogleFonts.inter(
-                          fontSize: 14, color: bodyTextColor),
+                      style:
+                          GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
                     ),
                     SizedBox(height: defaultPadding),
                     Container(
@@ -114,17 +114,16 @@ class AdminNotificationsScreen extends StatelessWidget {
                                     const Divider(
                                         color: borderColor, height: 1),
                                 itemBuilder: (context, index) {
-                                  final notification =
-                                      notifications[index].data()
-                                          as Map<String, dynamic>;
+                                  final notification = notifications[index]
+                                      .data() as Map<String, dynamic>;
                                   final isRead =
                                       notification['isRead'] ?? false;
                                   final docId = notifications[index].id;
                                   final status =
                                       notification['status'] ?? 'Pending';
 
-                                  return _buildNotificationTile(
-                                      context, notification, isRead, docId, status);
+                                  return _buildNotificationTile(context,
+                                      notification, isRead, docId, status);
                                 },
                               );
                             },
@@ -155,8 +154,12 @@ class AdminNotificationsScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildNotificationTile(BuildContext context,
-      Map<String, dynamic> notification, bool isRead, String docId, String status) {
+  Widget _buildNotificationTile(
+      BuildContext context,
+      Map<String, dynamic> notification,
+      bool isRead,
+      String docId,
+      String status) {
     return InkWell(
       onTap: () {
         if (!isRead) _markAsRead(docId);
@@ -229,8 +232,11 @@ class AdminNotificationsScreen extends StatelessWidget {
                     spacing: 16,
                     runSpacing: 4,
                     children: [
-                      _infoChip(Icons.calendar_today_rounded,
-                          DateFormat('MMM d, yyyy').format((notification['eventDate'] as Timestamp).toDate())),
+                      _infoChip(
+                          Icons.calendar_today_rounded,
+                          DateFormat('MMM d, yyyy').format(
+                              (notification['eventDate'] as Timestamp)
+                                  .toDate())),
                       _infoChip(Icons.access_time_rounded,
                           '${notification['eventTime']}'),
                       _infoChip(Icons.timer_outlined,
@@ -258,27 +264,36 @@ class AdminNotificationsScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   itemBuilder: (context) => [
-                    _buildPopupItem(Icons.check_circle_outline, 'Accept Request', 'accept', successColor),
+                    _buildPopupItem(Icons.check_circle_outline,
+                        'Accept Request', 'accept', successColor),
                     if (status == 'Pending Payment')
-                      _buildPopupItem(Icons.payment_rounded, 'Confirm Payment', 'confirm_payment', primaryColor),
-                    _buildPopupItem(Icons.cancel_outlined, 'Decline Request', 'decline', warningColor),
+                      _buildPopupItem(Icons.payment_rounded, 'Confirm Payment',
+                          'confirm_payment', primaryColor),
+                    _buildPopupItem(Icons.cancel_outlined, 'Decline Request',
+                        'decline', warningColor),
                     _buildPopupItem(
-                        isRead ? Icons.mark_email_unread_outlined : Icons.mark_email_read_outlined,
+                        isRead
+                            ? Icons.mark_email_unread_outlined
+                            : Icons.mark_email_read_outlined,
                         isRead ? 'Mark as unread' : 'Mark as read',
-                        'mark_read', bodyTextColor),
-                    _buildPopupItem(Icons.delete_outline_rounded, 'Delete Booking', 'delete', dangerColor),
+                        'mark_read',
+                        bodyTextColor),
+                    _buildPopupItem(Icons.delete_outline_rounded,
+                        'Delete Booking', 'delete', dangerColor),
                   ],
                   onSelected: (value) async {
                     if (value == 'accept') {
                       _showPaymentDetailsDialog(context, docId, notification);
                     } else if (value == 'confirm_payment') {
-                      _showPaymentConfirmationDialog(context, docId, notification);
+                      _showPaymentConfirmationDialog(
+                          context, docId, notification);
                     } else if (value == 'decline') {
                       await _updateStatus(docId, notification, 'Declined');
                     } else if (value == 'mark_read') {
                       await _toggleReadStatus(docId, isRead);
                     } else if (value == 'delete') {
-                      _showDeleteConfirmationDialog(context, docId, notification);
+                      _showDeleteConfirmationDialog(
+                          context, docId, notification);
                     }
                   },
                 ),
@@ -296,19 +311,22 @@ class AdminNotificationsScreen extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: bodyTextColor),
         const SizedBox(width: 4),
-        Text(text, style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor)),
+        Text(text,
+            style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor)),
       ],
     );
   }
 
-  PopupMenuItem _buildPopupItem(IconData icon, String text, String value, Color color) {
+  PopupMenuItem _buildPopupItem(
+      IconData icon, String text, String value, Color color) {
     return PopupMenuItem(
       value: value,
       child: Row(
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 10),
-          Text(text, style: GoogleFonts.inter(fontSize: 13, color: darkTextColor)),
+          Text(text,
+              style: GoogleFonts.inter(fontSize: 13, color: darkTextColor)),
         ],
       ),
     );
@@ -431,8 +449,8 @@ class AdminNotificationsScreen extends StatelessWidget {
                   ),
                 );
               },
-              child:
-                  Text('Accept Request', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+              child: Text('Accept Request',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ),
           ],
         );

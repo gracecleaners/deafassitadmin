@@ -6,6 +6,7 @@ import 'package:admin/screens/dashboard/components/header.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -118,6 +119,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bgColor,
       drawer: Responsive.isDesktop(context)
           ? null
           : const Drawer(child: SideMenu()),
@@ -129,10 +131,25 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           Expanded(
             flex: 5,
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(defaultPadding * 1.5),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Header(title: "Booking Details"),
+                  Header(title: ''),
+                  SizedBox(height: defaultPadding),
+                  Text(
+                    "Booking Details",
+                    style: GoogleFonts.inter(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: darkTextColor),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "View and manage this booking",
+                    style:
+                        GoogleFonts.inter(fontSize: 14, color: bodyTextColor),
+                  ),
                   SizedBox(height: defaultPadding),
                   Expanded(child: _buildContent()),
                 ],
@@ -146,24 +163,37 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+          child:
+              CircularProgressIndicator(color: primaryColor, strokeWidth: 2));
     }
 
     if (_hasError) {
       return Center(
-        child: Text(
-          _errorMessage,
-          style: const TextStyle(color: Colors.white),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: dangerColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.error_outline_rounded,
+                  size: 40, color: dangerColor),
+            ),
+            const SizedBox(height: 16),
+            Text(_errorMessage,
+                style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
+          ],
         ),
       );
     }
 
     if (_bookingData == null) {
-      return const Center(
-        child: Text(
-          'No booking data available',
-          style: TextStyle(color: Colors.white),
-        ),
+      return Center(
+        child: Text('No booking data available',
+            style: GoogleFonts.inter(fontSize: 14, color: bodyTextColor)),
       );
     }
 
