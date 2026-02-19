@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _signIn(String email, String password) async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isLoading = true);
     try {
       AuthService authService = AuthService();
@@ -41,7 +41,8 @@ class _LoginPageState extends State<LoginPage> {
               content: const Text("Access denied. Admin accounts only."),
               backgroundColor: dangerColor,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
@@ -51,17 +52,20 @@ class _LoginPageState extends State<LoginPage> {
             content: const Text("User not found."),
             backgroundColor: dangerColor,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Login failed: ${e.toString().replaceAll('Exception: ', '')}"),
+          content: Text(
+              "Login failed: ${e.toString().replaceAll('Exception: ', '')}"),
           backgroundColor: dangerColor,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     } finally {
@@ -93,7 +97,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.sign_language, color: Colors.white, size: 36),
+                child: const Icon(Icons.sign_language,
+                    color: Colors.white, size: 36),
               ),
               const SizedBox(height: 24),
               Text(
@@ -163,11 +168,14 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: emailController,
-                        style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: darkTextColor),
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.email_outlined, color: bodyTextColor.withOpacity(0.5), size: 20),
+                          prefixIcon: Icon(Icons.email_outlined,
+                              color: bodyTextColor.withOpacity(0.5), size: 20),
                           hintText: 'admin@example.com',
-                          hintStyle: GoogleFonts.inter(color: bodyTextColor.withOpacity(0.4)),
+                          hintStyle: GoogleFonts.inter(
+                              color: bodyTextColor.withOpacity(0.4)),
                           fillColor: bgColor,
                           filled: true,
                           border: OutlineInputBorder(
@@ -180,7 +188,8 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: primaryColor, width: 2),
+                            borderSide:
+                                const BorderSide(color: primaryColor, width: 2),
                           ),
                         ),
                         validator: FormValidator.validateEmail,
@@ -198,20 +207,26 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: passwordController,
-                        style: GoogleFonts.inter(fontSize: 14, color: darkTextColor),
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: darkTextColor),
                         obscureText: _isObscure,
                         decoration: InputDecoration(
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _isObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _isObscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: bodyTextColor.withOpacity(0.5),
                               size: 20,
                             ),
-                            onPressed: () => setState(() => _isObscure = !_isObscure),
+                            onPressed: () =>
+                                setState(() => _isObscure = !_isObscure),
                           ),
-                          prefixIcon: Icon(Icons.lock_outline, color: bodyTextColor.withOpacity(0.5), size: 20),
+                          prefixIcon: Icon(Icons.lock_outline,
+                              color: bodyTextColor.withOpacity(0.5), size: 20),
                           hintText: 'Enter your password',
-                          hintStyle: GoogleFonts.inter(color: bodyTextColor.withOpacity(0.4)),
+                          hintStyle: GoogleFonts.inter(
+                              color: bodyTextColor.withOpacity(0.4)),
                           fillColor: bgColor,
                           filled: true,
                           border: OutlineInputBorder(
@@ -224,7 +239,8 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: primaryColor, width: 2),
+                            borderSide:
+                                const BorderSide(color: primaryColor, width: 2),
                           ),
                         ),
                         validator: FormValidator.validatePassword,
@@ -243,10 +259,14 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: _isLoading ? null : () => _signIn(emailController.text, passwordController.text),
+                          onPressed: _isLoading
+                              ? null
+                              : () => _signIn(emailController.text,
+                                  passwordController.text),
                           child: _isLoading
                               ? const SizedBox(
-                                  width: 22, height: 22,
+                                  width: 22,
+                                  height: 22,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     color: Colors.white,
@@ -268,7 +288,8 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 24),
               Text(
                 "© 2026 Deaf Assist. All rights reserved.",
-                style: GoogleFonts.inter(fontSize: 12, color: bodyTextColor.withOpacity(0.5)),
+                style: GoogleFonts.inter(
+                    fontSize: 12, color: bodyTextColor.withOpacity(0.5)),
               ),
             ],
           ),
