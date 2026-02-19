@@ -12,15 +12,15 @@ class EventsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideMenu(),
+      drawer: Responsive.isDesktop(context)
+          ? null
+          : const Drawer(child: SideMenu()),
       body: SafeArea(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (Responsive.isDesktop(context))
-              Expanded(
-                child: SideMenu(),
-              ),
+              const SizedBox(width: 260, child: SideMenu()),
             Expanded(
               flex: 5,
               child: EventsListScreen(),
@@ -98,11 +98,13 @@ class EventsGrid extends StatelessWidget {
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return Center(child: Text("No events available"));
               }
-              
+
               // Filter out past events if needed
               final currentEvents = snapshot.data!.docs.where((doc) {
-                final endDate = (doc.data() as Map<String, dynamic>)['endDate']?.toDate();
-                return endDate == null || endDate.isAfter(DateTime.now().subtract(Duration(days: 1)));
+                final endDate =
+                    (doc.data() as Map<String, dynamic>)['endDate']?.toDate();
+                return endDate == null ||
+                    endDate.isAfter(DateTime.now().subtract(Duration(days: 1)));
               }).toList();
 
               if (currentEvents.isEmpty) {
@@ -113,7 +115,11 @@ class EventsGrid extends StatelessWidget {
                 shrinkWrap: true,
                 physics: AlwaysScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: _size.width > 1200 ? 3 : _size.width > 800 ? 2 : 1,
+                  crossAxisCount: _size.width > 1200
+                      ? 3
+                      : _size.width > 800
+                          ? 2
+                          : 1,
                   crossAxisSpacing: defaultPadding,
                   mainAxisSpacing: defaultPadding,
                   childAspectRatio: 0.8,

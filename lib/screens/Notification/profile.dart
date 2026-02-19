@@ -70,11 +70,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children:[
               if (Responsive.isDesktop(context))
-                Expanded(
-                  // default flex = 1
-                  // and it takes 1/6 part of the screen
-                  child: SideMenu(),
-                ),
+                const SizedBox(width: 260, child: SideMenu()),
               Expanded(
                 flex: 5,
                 child: SafeArea(
